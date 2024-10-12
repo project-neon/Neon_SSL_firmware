@@ -1,73 +1,78 @@
+///station que envia os comandos para o robô - 1 fitas
+
 #include <esp_now.h>
-#include <esp_wifi.h>
 #include <WiFi.h>
 
 
-// MAC Adress genérico para enviar os dados no canal selecionado
-uint8_t broadcast_adr[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-//==============
+//3 fitas (teste) A4:CF:12:72:B7:20
+uint8_t mac_address_robot[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20}; //mac address do robo
 
-const byte numChars = 64;
+
+esp_now_peer_info_t peer;
+
 char receivedChars[numChars];
 char tempChars[numChars];   
 boolean newData = false;     
 int id, count;
 
-typedef struct struct_message{
-  char message[numChars];
-  } struct_message;
+/*typedef struct struct_message {
+  int header;
+  char message;
+} struct_message;*/
+
+typedef struct struct_message {
+  int data;
+} struct_message;
 
 struct_message commands;
 
-//==============
-
-esp_now_peer_info_t peerInfo;
+void OnDataSent(const uint8_t *mac_address, esp_now_send_status_t status) {
+  if (status == ESP_NOW_SEND_SUCCESS){
+      Serial.println("Mensagem enviada para o robo");
+  }else{
+      Serial.println("Erro ao enviar mensagem para o robo");
+  }
+}
 
 void setup() {
   Serial.begin(115200);
-  pinMode(2, OUTPUT);
-  ESP_ERROR_CHECK(esp_netif_init());
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  ESP_ERROR_CHECK(esp_wifi_start());
-  ESP_ERROR_CHECK(esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE));
-  esp_wifi_set_max_tx_power(84);
-
-
-  if (esp_now_init() != ESP_OK) 
-  {
+  WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
+    ESP.restart();
     return;
   }
-
-  memcpy(peerInfo.peer_addr, broadcast_adr, 6);
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) 
-  {
+  else Serial.println("ESPNOW OK ");
+  peer.channel = 0;  
+  peer.encrypt = false;
+  memcpy(peer.peer_addr, mac_address_robot, 6);
+  if (esp_now_add_peer(&peer) != ESP_OK){
     Serial.println("Failed to add peer");
-    return;
+    ESP.restart();
   }
- 
+  esp_now_register_send_cb(OnDataSent);
+  //commands.header = 2232;
+  commands.data = 0;
 }
-
-//=============
 
 void loop() {
-  recvWithStartEndMarkers();
-  
+  //commands.message = "aaa";
+  //recvWithStartEndMarkers()
+  /*
   if (newData == true){
       strcpy(commands.message, receivedChars);
-      sendData();
+      commands.header = 2232;
       newData = false;
+      esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &DataToSend, sizeof(DataToSend));
+      delay(3);
   }
+  */
+  DataToSend.data = 1;
+  esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &commands, sizeof(DataToSend));
 }
 
-//==============
-
-void recvWithStartEndMarkers(){
+/*void recvWithStartEndMarkers(){
     static boolean recvInProgress = false;
     static byte ndx = 0;
     char startMarker = '<';
@@ -76,7 +81,9 @@ void recvWithStartEndMarkers(){
 
     while (Serial.available()){
         //  Formato da mensagem::
-        //  <[id1],[v_l1],[v_a1],[id2],[v_l2],[v_a2],[id3],[v_l3],[v_a3]>
+        // <[id1],[v_x1],[v_l1],[kick_straight],[kick_dug1],[theta1: float], [dribler1: bool], [
+        //  [id2],[v_x2],[v_l2],[kick2],[theta2], [kick_dug2]
+        //  [id3],[v_x3],[v_l3],[kick3],[theta3]>
         in = Serial.read();
 
         if (recvInProgress == true){
@@ -99,13 +106,17 @@ void recvWithStartEndMarkers(){
             recvInProgress = true;
         }
     }
-}
+}*/
 
 
-void sendData(){   
-    // esse delay é necessário para que os dados sejam enviados corretamente
-    esp_err_t message = esp_now_send(broadcast_adr, (uint8_t *) &commands, sizeof(commands));
-    digitalWrite(2,HIGH);
-    delay(3);
-    digitalWrite(2,LOW);
-}
+/*
+            {
+                robot_id: int,
+                color: 'yellow|blue',
+                vx: float,
+                vy: float,
+                can_kick: bool,
+                actual_theta: float
+                
+            }
+*/
