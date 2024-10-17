@@ -3,8 +3,8 @@
 #include <WiFi.h>
 
 
-float L = 1; //distancia entre roda e centro do robo
-float r = 1;
+float L = 0.079153; //distancia entre roda e centro do robo
+float r = 0.02035 + 0.001;
 
 
 // This is de code for the board that is in robots
@@ -46,18 +46,19 @@ void send_power(float m1,float m2,float m3,float m4){
 }
 
 float calculate_motor(float v_x, float v_y, float angular, float L,float radius, int motor){
+  float vel = 0;
   if (motor == 1) {
-    float vel = (((1-sqrt(3))*L*angular) + ((1+sqrt(3))*v_x) + ((sqrt(3)-1)*v_y))/2*radius;
+    vel = ((2*L*angular) - (sqrt(3)*v_x) + v_y)/(2*r);
   }
   if (motor == 2) {
-    float vel = (((-1-sqrt(3))*L*angular) + ((sqrt(3)-1)*v_x) + ((1+sqrt(3))*v_y))/ 2*radius;
+    vel = ((2*L*angular) - (sqrt(3)*v_x) - v_y)/(2*r);
   }
   if (motor == 3) {
-    float vel = (((1-sqrt(3))*L*angular) + ((-1-sqrt(3))*v_x) + ((1-sqrt(3))*v_y))/ 2*radius;
+    vel = ((2*L*angular) + (sqrt(3)*v_x) - v_y)/(2*r);
   }  
   if (motor == 4) {
-    float vel = (((-1-sqrt(3))*L*angular) + ((1-sqrt(3))*v_x) + ((-1-sqrt(3))*v_y))/ 2*radius;
-  }  
+    vel = ((2*L*angular) + (sqrt(3)*v_x) + v_y)/(2*r);
+  } 
   return vel;
 
 }
@@ -69,12 +70,12 @@ void motors_control(float x, float y, float angular) {
   float vel_LT = x - y + angular;
   float vel_RT = x + y - angular;*/
 
-  float vel_LD = calculate_motor(x, y, angular, L, r, 1)
-  float vel_RD = calculate_motor(x, y, angular, L, r, 2)
-  float vel_LT = calculate_motor(x, y, angular, L, r, 3)
-  float vel_RT = calculate_motor(x, y, angular, L, r, 4)
+  float vel_LD = calculate_motor(x, y, angular, L, r, 1);
+  float vel_RD = calculate_motor(x, y, angular, L, r, 3);
+  float vel_LT = calculate_motor(x, y, angular, L, r, 2);
+  float vel_RT = calculate_motor(x, y, angular, L, r, 4);
 
-  send_power(vel_RD, vel_RT, -vel_LD, -vel_LT);
+  send_power(vel_RD, vel_RT, vel_LD, vel_LT);
 }
 
 void setup() {
@@ -143,11 +144,14 @@ void parseData(){
           v_l = atof(strtokIndx);       
           strtokIndx = strtok(NULL, ",");         
           v_a = atof(strtokIndx);
+          strtokIndx = strtok(NULL, ",");         
+          th = atof(strtokIndx);
           strtokIndx = strtok(NULL, ","); 
         }
 
        else{
           strtokIndx = strtok(NULL, ",");     
+          strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ","); 
         }
