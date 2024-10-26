@@ -3,7 +3,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include "esp_wifi.h"
-#include <ESP32Servo.h>
+//#include <ESP32Servo.h>
 
 
 
@@ -16,6 +16,8 @@
 #define FREQUENCIA_DRIBBLER 50
 #define MIN_THROTTLE_DRIBBLER 1048
 #define MAX_THROTTLE_DRIBBER 1952
+
+#define FB_PASSWORD 1500
 
 //2 fitas: 08:B6:1F:28:E3:94
 uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94}; //mac address do feedback
@@ -32,7 +34,7 @@ bool kick;
 
 esp_now_peer_info_t peer;
 
-Servo Dribbler;
+//Servo Dribbler;
 
 int status_com = 0;
 int32_t rssi = 0;
@@ -60,21 +62,21 @@ typedef struct struct_data {
 - temperature AINDA NAO
 */
 
-/*typedef struct struct_feedback {
-  int32_t id;
-  int rssi;
-  int real_speed;
-  bool sensor_kick;
-  int battery; 
-
-} struct_feedback;*/
-
 typedef struct struct_feedback {
-  int32_t data_feedback;
-
+  int password;
+  int id;
+  int rssi;
+  //int real_speed;
+  //bool sensor_kick;
+  int battery; 
 
 } struct_feedback;
 
+/*
+typedef struct struct_feedback {
+  int data_feedback;
+} struct_feedback;
+*/
 
 typedef struct {
   unsigned frame_ctrl: 16;
@@ -95,7 +97,7 @@ typedef struct {
 struct_data DataReceived;
 struct_feedback DataFeedback;
 
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   status_com = 1;
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
   first_mark = millis();
@@ -154,11 +156,9 @@ void setup() {
   WiFi.mode(WIFI_STA);
 
 /*
-
   Dribbler.setPeriodHertz(FREQUENCIA_DRIBBLER);
   Dribbler.attach(DRIBBLER_PIN, MIN_THROTTLE_DRIBBLER, MAX_THROTTLE_DRIBBLER);
-
-  */
+*/
 
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
@@ -175,15 +175,17 @@ void setup() {
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
 
+
+
   esp_wifi_set_promiscuous(true);
   esp_wifi_set_promiscuous_rx_cb(&promiscuous_rx_cb);
 
  // DataReceived.data_received = 0;
-  DataFeedback.data_feedback = 0;
+ // DataFeedback.Data_feedback = 0;
 }
 
 int readBattery(){
-  voltage = analogRead(VOLTAGE_SENSOR_PIN);
+  int voltage = analogRead(VOLTAGE_SENSOR_PIN);
   return voltage;
 }
 
@@ -217,7 +219,10 @@ void loop() {
   }
   motors_control(v_l, v_a,theta); //aplica os valores para os motores*/
   if(status_com == 1){
-    DataFeedback.data_feedback = rssi;
+    DataFeedback.password = FB_PASSWORD;
+    DataFeedback.rssi = rssi;
+    DataFeedback.id = 1;
+    DataFeedback.battery = 250;
     esp_err_t result = esp_now_send(mac_address_feedback, (uint8_t *) &DataFeedback, sizeof(DataFeedback));
   }
  /* else{
@@ -228,7 +233,7 @@ void loop() {
 
 
 
-
+/*
 void parseData(){
     char * strtokIndx;
   
@@ -262,3 +267,4 @@ void parseData(){
        }
    } 
 }
+*/

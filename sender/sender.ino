@@ -11,6 +11,7 @@ uint8_t mac_address_robot[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20}; //mac addre
 
 esp_now_peer_info_t peer;
 
+const byte numChars = 64;
 char receivedChars[numChars];
 char tempChars[numChars];   
 boolean newData = false;     
@@ -68,8 +69,8 @@ void loop() {
       delay(3);
   }
   */
-  DataToSend.data = 1;
-  esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &commands, sizeof(DataToSend));
+  commands.data = 1;
+  esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &commands, sizeof(commands));
 }
 
 /*void recvWithStartEndMarkers(){
