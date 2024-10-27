@@ -84,7 +84,7 @@ void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int 
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   WiFi.mode(WIFI_STA);
     if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
@@ -96,8 +96,15 @@ void setup() {
 
 
 void loop() {
+  if (!Serial){
+    Serial.begin(9600);
+    delay(100);
+    // Reinicializa se o serial não está funcionando
+    ESP.restart();
+  }
   if (n_robots != 0){
     String message = last_id1_msg + last_id2_msg + last_id3_msg;
+    Serial.flush(); 
     Serial.println(message);
   }
 

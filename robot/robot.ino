@@ -5,8 +5,6 @@
 #include "esp_wifi.h"
 //#include <ESP32Servo.h>
 
-
-
 #define VOLTAGE_SENSOR_PIN 34
 #define SENSOR_KICKER 14
 #define KICKER_PIN 18
@@ -17,10 +15,13 @@
 #define MIN_THROTTLE_DRIBBLER 1048
 #define MAX_THROTTLE_DRIBBER 1952
 
+#define ROBOT_PASSWORD 2400
 #define FB_PASSWORD 1500
 
 //2 fitas: 08:B6:1F:28:E3:94
 uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94}; //mac address do feedback
+
+uint8_t mac_address_station[6] = {0x24, 0x0A, 0xC4, 0x82, 0x93, 0x04};
 
 const byte numChars = 64;
 char commands[numChars];
@@ -28,7 +29,7 @@ char tempChars[numChars];
 
 int first_mark = 0, second_mark;
 int id;
-int robot_id = 2;
+int robot_id = 1;
 float v_l, v_a, theta;
 bool kick;
 
@@ -41,7 +42,7 @@ int32_t rssi = 0;
 
 //struct received
 /*typedef struct struct_data {
-  int header;
+  int password;
   char message[numChars];
 } struct_data;*/
 
@@ -100,11 +101,12 @@ struct_feedback DataFeedback;
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   status_com = 1;
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
+  if (DataReceived != ROBOT_PASSWORD) return;
   first_mark = millis();
-  Serial.print("Message received: ");
+//  Serial.print("Message received: ");
   //strcpy(commands, DataReceived.message);
 //  header = DataReceived.header;
-  Serial.println(DataReceived.data_received);
+  //Serial.println(DataReceived.data_received);
 }
 
 void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
@@ -114,15 +116,22 @@ void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
   rssi > -55 dbm: sinal bom
   rssi > -30 dbm: sinal ótimo
   */
-  if (type != WIFI_PKT_MGMT)
-    return;
-  else{
-    const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buff;
-    const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
-    const wifi_ieee80211_mac_hdr_t *hdr = &ipkt->hdr;
+  if (type != WIFI_PKT_MGMT) return;
 
-    rssi = ppkt->rx_ctrl.rssi;
+    
+  const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buff;
+  const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
+  const wifi_ieee80211_mac_hdr_t *hdr = &ipkt->hdr;
+
+  bool is_from_station = true;
+
+  for (int i = 0; i < 6; i++) {
+      if (hdr->addr2[i] != mac_address_station[i]) {
+          is_from_station = false;
+          break;
+      }
   }
+  if (is_from_station) rssi = ppkt->rx_ctrl.rssi;
 }
 
 // Função callback chamada ao enviar algum dado
@@ -172,7 +181,7 @@ void setup() {
     Serial.println("Failed to add peer");
     ESP.restart();
   }
-  esp_now_register_send_cb(OnDataSent);
+  //esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
 
 
@@ -196,20 +205,21 @@ void loop() {
   DataFeedback.sensor_kick = sensor_kick;
   DataFeedback.battery = readBattery();
   DataFeedback.rssi = rssi;
+
+
+
   strcpy(tempChars, commands); // necessário para proteger a informação original
-  //Serial.println(tempChars);
-  parseData();
+  if(new_data) parseData();
 
   second_mark = millis();
   //Serial.println(second_mark - first_mark);
-  if (second_mark - first_mark > 500) {
+  if (second_mark - first_mark > 300) {
     v_l = 0.00;
     v_a = 0.00;
-    theta = 0.00;
+    th = 0.00;
     last_error = 0;
     error_sum = 0;
     stop = true;
-
   }/*
   if (sensor_kick == 1){
     ledcWrite(kick_straight); //ver como vao ficar os parametros da solenoide
@@ -222,6 +232,7 @@ void loop() {
     DataFeedback.password = FB_PASSWORD;
     DataFeedback.rssi = rssi;
     DataFeedback.id = 1;
+   // DataFeedback.battery = readBattery();
     DataFeedback.battery = 250;
     esp_err_t result = esp_now_send(mac_address_feedback, (uint8_t *) &DataFeedback, sizeof(DataFeedback));
   }
@@ -236,35 +247,32 @@ void loop() {
 /*
 void parseData(){
     char * strtokIndx;
-  
-    strtokIndx = strtok(tempChars, ",");
+      strtokIndx = strtok(tempChars, ",");
     
-    while (strtokIndx != NULL){
+      while (strtokIndx != NULL){
         id = atoi(strtokIndx);
         
-        if(id == robot_id){         
+        if(id == robot_id){ 
+          new_data=0;
+          stop = 0;
+          first_mark = millis();        
           strtokIndx = strtok(NULL, ",");  
-          v_a = atof(strtokIndx);       
+          v_l = atof(strtokIndx);       
           strtokIndx = strtok(NULL, ",");         
-          v_l = atof(strtokIndx);
-          strtokIndx = strtok(NULL, ",");
-          kick_straight = atof(strtokIndx);
+          v_a = atof(strtokIndx);
+          strtokIndx = strtok(NULL, ",");         
+          th = atof(strtokIndx);
           strtokIndx = strtok(NULL, ","); 
-          dribbler = strtok(NULL, ",");
-          strtokIndx = strtok(NULL, ",");
-          //kick_dug = atof(strtokIndx);
-          //strtokIndx = strtok(NULL, ","); 
-          theta = atof(strtokIndx);
-          strtokIndx = strtok(NULL, ",");
-       }
+        }
 
        else{
           strtokIndx = strtok(NULL, ",");     
           strtokIndx = strtok(NULL, ",");         
-          strtokIndx = strtok(NULL, ","); 
           strtokIndx = strtok(NULL, ",");         
-          strtokIndx = strtok(NULL, ",");
-       }
-   } 
+          strtokIndx = strtok(NULL, ","); 
+        }
+    } 
+  
+   
 }
 */

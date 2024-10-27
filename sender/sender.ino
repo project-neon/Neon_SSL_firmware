@@ -1,9 +1,9 @@
 ///station que envia os comandos para o robô - 1 fitas
 
+#define ROBOT_PASSWORD 2400
+
 #include <esp_now.h>
 #include <WiFi.h>
-
-
 
 //3 fitas (teste) A4:CF:12:72:B7:20
 uint8_t mac_address_robot[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20}; //mac address do robo
@@ -18,7 +18,7 @@ boolean newData = false;
 int id, count;
 
 /*typedef struct struct_message {
-  int header;
+  int password;
   char message;
 } struct_message;*/
 
@@ -53,7 +53,7 @@ void setup() {
     ESP.restart();
   }
   esp_now_register_send_cb(OnDataSent);
-  //commands.header = 2232;
+  //commands.password = ROBOT_PASSWORD;
   commands.data = 0;
 }
 
@@ -63,7 +63,7 @@ void loop() {
   /*
   if (newData == true){
       strcpy(commands.message, receivedChars);
-      commands.header = 2232;
+      commands.header = ROBOT_PASSWORD;
       newData = false;
       esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &DataToSend, sizeof(DataToSend));
       delay(3);
