@@ -22,11 +22,9 @@ float r = 0.03;
 
 
 // This is de code for the board that is in robots
-int robot_id = 0;
-int id;
-int first_mark = 0, second_mark;
-int last = 0;
-
+int last_error = 0;
+bool stop =0;
+float error_sum = 0;
 
 #define ROBOT_PASSWORD 2400
 #define FB_PASSWORD 1500
@@ -34,7 +32,9 @@ int last = 0;
 //2 fitas: 08:B6:1F:28:E3:94
 uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94}; //mac address do feedback
 
-uint8_t mac_address_station[6] = {0x24, 0x0A, 0xC4, 0x82, 0x93, 0x04};
+//uint8_t mac_address_station[6] = {0x24, 0x0A, 0xC4, 0x82, 0x93, 0x04};
+uint8_t mac_address_station[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+//00:00:00:00:00:00
 
 const byte numChars = 64;
 char commands[numChars];
@@ -43,8 +43,10 @@ char tempChars[numChars];
 int first_mark = 0, second_mark;
 int id;
 int robot_id = 1;
-float v_l, v_a, theta;
+float v_l, v_a, th;
 bool kick;
+
+volatile bool new_data=0;
 
 esp_now_peer_info_t peer;
 
@@ -113,13 +115,11 @@ struct_feedback DataFeedback;
 
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   status_com = 1;
+  new_data=1;
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
   if (DataReceived.password != ROBOT_PASSWORD) return;
   first_mark = millis();
-//  Serial.print("Message received: ");
-  //strcpy(commands, DataReceived.message);
-//  header = DataReceived.header;
-  //Serial.println(DataReceived.data_received);
+
 }
 
 void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
@@ -182,7 +182,6 @@ float calculate_motor(float v_x, float v_y, float angular, float L,float radius,
 
 void motors_control(float x, float y, float angular) {
 
-  float vel_LD = x + y + angular;
 
   /*float vel_LD = x + y + angular;
   float vel_RD = x - y - angular;
@@ -270,7 +269,7 @@ void loop() {
   if (dribbler == 1){
     Dribbler.write(MAX_DRIBBLER);
   }*/
-  if (!stop) motors_control(v_l, v_a,theta); //aplica os valores para os motores
+  if (!stop) motors_control(v_l, v_a,th); //aplica os valores para os motores
   if(status_com == 1){
     DataFeedback.password = FB_PASSWORD;
     DataFeedback.rssi = rssi;

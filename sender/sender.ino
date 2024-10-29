@@ -18,7 +18,7 @@ int id, count;
 
 typedef struct struct_message {
   int password;
-  char message;
+  char message[numChars];
 } struct_message;
 
 /*typedef struct struct_message {
@@ -53,18 +53,17 @@ void setup() {
   }
   esp_now_register_send_cb(OnDataSent);
   //commands.password = ROBOT_PASSWORD;
-  commands.data = 0;
 }
 
 void loop() {
   //commands.message = "aaa";
-  recvWithStartEndMarkers()
+  recvWithStartEndMarkers();
   
   if (newData == true){
       strcpy(commands.message, receivedChars);
       commands.password = ROBOT_PASSWORD;
       newData = false;
-      esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &DataToSend, sizeof(DataToSend));
+      esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &commands, sizeof(commands));
       delay(3);
   }
  // commands.data = 1;
