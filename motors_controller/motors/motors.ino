@@ -80,10 +80,11 @@ void loop() {
     //driver2.setPhaseState(_HIGH_IMPEDANCE , _HIGH_IMPEDANCE, _HIGH_IMPEDANCE);
 
   //}
-  float current_m = min(0.06*m1,0.7);
+  float current_m = min(0.1*m1,0.7);
+  float current_m2 = min(0.1*m2,0.7);
 
   motor.current_limit = current_m;
-  motor2.current_limit = current_m;
+  motor2.current_limit = current_m2;
   
   motor.move(m1);
   motor2.move(m2);

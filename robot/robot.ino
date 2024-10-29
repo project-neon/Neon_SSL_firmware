@@ -5,6 +5,7 @@
 #include "esp_wifi.h"
 //#include <ESP32Servo.h>
 
+
 #define VOLTAGE_SENSOR_PIN 34
 #define SENSOR_KICKER 14
 #define KICKER_PIN 18
@@ -14,6 +15,18 @@
 #define FREQUENCIA_DRIBBLER 50
 #define MIN_THROTTLE_DRIBBLER 1048
 #define MAX_THROTTLE_DRIBBER 1952
+
+
+float L = 0.0785; //distancia entre roda e centro do robo
+float r = 0.03;
+
+
+// This is de code for the board that is in robots
+int robot_id = 0;
+int id;
+int first_mark = 0, second_mark;
+int last = 0;
+
 
 #define ROBOT_PASSWORD 2400
 #define FB_PASSWORD 1500
@@ -149,14 +162,44 @@ void send_power(float m1,float m2,float m3,float m4){
   Serial.println(result);
 }
 
+float calculate_motor(float v_x, float v_y, float angular, float L,float radius, int motor){
+  float vel = 0;
+  if (motor == 1) {
+    vel = ((2*L*angular) - (sqrt(3)*v_x) + (sqrt(3)*v_y))/(2*r);
+  }
+  if (motor == 2) {
+    vel = ((2*L*angular) - (sqrt(3)*v_x) - (sqrt(3)*v_y))/(2*r);
+  }
+  if (motor == 3) {
+    vel = ((2*L*angular) + (sqrt(3)*v_x) - (sqrt(3)*v_y))/(2*r);
+  }  
+  if (motor == 4) {
+    vel = ((2*L*angular) + (sqrt(3)*v_x) + (sqrt(3)*v_y))/(2*r);
+  } 
+  return vel;
+
+}
+
 void motors_control(float x, float y, float angular) {
+
   float vel_LD = x + y + angular;
+
+  /*float vel_LD = x + y + angular;
   float vel_RD = x - y - angular;
   float vel_LT = x - y + angular;
-  float vel_RT = x + y - angular;
+  float vel_RT = x + y - angular;*/
 
-  send_power(vel_RD, vel_RT, -vel_LD, -vel_LT);
-  //send_power(w1,w4,w2,w3,angular);
+//  float vel_RD = calculate_motor(x, y, angular, L, r, 3);
+//  float vel_RT = calculate_motor(x, y, angular, L, r, 4);
+//  float vel_LD = calculate_motor(x, y, angular, L, r, 1);
+//  float vel_LT = calculate_motor(x, y, angular, L, r, 2);
+
+  float vel_RD = calculate_motor(x, y, angular, L, r, 1);
+  float vel_RT = calculate_motor(x, y, angular, L, r, 2);
+  float vel_LD = calculate_motor(x, y, angular, L, r, 3);
+  float vel_LT = calculate_motor(x, y, angular, L, r, 4);
+
+  send_power(vel_RD, vel_RT, vel_LD, vel_LT);
 }
 
 
