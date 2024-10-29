@@ -287,7 +287,7 @@ void loop() {
 
 
 
-/*
+
 void parseData(){
     char * strtokIndx;
       strtokIndx = strtok(tempChars, ",");
@@ -318,4 +318,3 @@ void parseData(){
   
    
 }
-*/
