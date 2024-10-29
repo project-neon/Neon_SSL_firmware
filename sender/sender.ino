@@ -5,8 +5,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-//3 fitas (teste) A4:CF:12:72:B7:20
-uint8_t mac_address_robot[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20}; //mac address do robo
+uint8_t mac_address_robot[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //mac address do robo
 
 
 esp_now_peer_info_t peer;
@@ -17,14 +16,14 @@ char tempChars[numChars];
 boolean newData = false;     
 int id, count;
 
-/*typedef struct struct_message {
+typedef struct struct_message {
   int password;
   char message;
-} struct_message;*/
-
-typedef struct struct_message {
-  int data;
 } struct_message;
+
+/*typedef struct struct_message {
+  int data;
+} struct_message;*/
 
 struct_message commands;
 
@@ -59,21 +58,20 @@ void setup() {
 
 void loop() {
   //commands.message = "aaa";
-  //recvWithStartEndMarkers()
-  /*
+  recvWithStartEndMarkers()
+  
   if (newData == true){
       strcpy(commands.message, receivedChars);
-      commands.header = ROBOT_PASSWORD;
+      commands.password = ROBOT_PASSWORD;
       newData = false;
       esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &DataToSend, sizeof(DataToSend));
       delay(3);
   }
-  */
-  commands.data = 1;
-  esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &commands, sizeof(commands));
+ // commands.data = 1;
+  //esp_err_t result = esp_now_send(mac_address_robot, /(uint8_t *) &commands, sizeof(commands));
 }
 
-/*void recvWithStartEndMarkers(){
+void recvWithStartEndMarkers(){
     static boolean recvInProgress = false;
     static byte ndx = 0;
     char startMarker = '<';
@@ -107,7 +105,7 @@ void loop() {
             recvInProgress = true;
         }
     }
-}*/
+}
 
 
 /*
