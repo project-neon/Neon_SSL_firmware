@@ -114,7 +114,7 @@ struct_feedback DataFeedback;
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   status_com = 1;
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
-  if (DataReceived != ROBOT_PASSWORD) return;
+  if (DataReceived.password != ROBOT_PASSWORD) return;
   first_mark = millis();
 //  Serial.print("Message received: ");
   //strcpy(commands, DataReceived.message);
@@ -250,7 +250,7 @@ void loop() {
   DataFeedback.rssi = rssi;
 
 
-
+*/
   strcpy(tempChars, commands); // necessário para proteger a informação original
   if(new_data) parseData();
 
@@ -269,8 +269,8 @@ void loop() {
   }
   if (dribbler == 1){
     Dribbler.write(MAX_DRIBBLER);
-  }
-  motors_control(v_l, v_a,theta); //aplica os valores para os motores*/
+  }*/
+  if (!stop) motors_control(v_l, v_a,theta); //aplica os valores para os motores
   if(status_com == 1){
     DataFeedback.password = FB_PASSWORD;
     DataFeedback.rssi = rssi;
