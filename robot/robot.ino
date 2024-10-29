@@ -54,14 +54,14 @@ int status_com = 0;
 int32_t rssi = 0;
 
 //struct received
-/*typedef struct struct_data {
+typedef struct struct_data {
   int password;
   char message[numChars];
-} struct_data;*/
-
-typedef struct struct_data {
-  int data_received;
 } struct_data;
+
+/*typedef struct struct_data {
+  int data_received;
+} struct_data;*/
 
 
 
