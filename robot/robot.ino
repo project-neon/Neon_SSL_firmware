@@ -48,16 +48,16 @@ void send_power(float m1,float m2,float m3,float m4){
 float calculate_motor(float v_x, float v_y, float angular, float L,float radius, int motor){
   float vel = 0;
   if (motor == 1) {
-    vel = ((2*L*angular) - (sqrt(3)*v_x) - (sqrt(3)*v_y))/(2*r);
-  }
-  if (motor == 2) {
     vel = ((2*L*angular) - (sqrt(3)*v_x) + (sqrt(3)*v_y))/(2*r);
   }
+  if (motor == 2) {
+    vel = ((2*L*angular) - (sqrt(3)*v_x) - (sqrt(3)*v_y))/(2*r);
+  }
   if (motor == 3) {
-    vel = ((2*L*angular) + (sqrt(3)*v_x) + (sqrt(3)*v_y))/(2*r);
+    vel = ((2*L*angular) + (sqrt(3)*v_x) - (sqrt(3)*v_y))/(2*r);
   }  
   if (motor == 4) {
-    vel = ((2*L*angular) + (sqrt(3)*v_x) - (sqrt(3)*v_y))/(2*r);
+    vel = ((2*L*angular) + (sqrt(3)*v_x) + (sqrt(3)*v_y))/(2*r);
   } 
   return vel;
 
