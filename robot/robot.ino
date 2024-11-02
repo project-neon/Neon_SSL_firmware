@@ -25,7 +25,7 @@ uint8_t mac_address_station[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
 
-int robot_id = 1;
+int robot_id = 0;
 int id;
 int first_mark = 0, second_mark;
 int last = 0;
@@ -48,7 +48,6 @@ esp_now_peer_info_t peer;
 
 //struct received
 typedef struct struct_data {
-  int password;
   char message[numChars];
 } struct_data;
 
@@ -113,23 +112,16 @@ void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
 
   bool is_from_station = true;
 
-  for (int i = 0; i < 6; i++) {
+ /*for (int i = 0; i < 6; i++) {
       if (hdr->addr2[i] != mac_address_station[i]) {
           is_from_station = false;
           break;
       }
   }
-  if (is_from_station) rssi = ppkt->rx_ctrl.rssi;
+  if (is_from_station) */
+  rssi = ppkt->rx_ctrl.rssi;
 }
 
-// Função callback chamada ao enviar algum dado
-void OnDataSent(const uint8_t *mac_address_feedback, esp_now_send_status_t status) {
-  if (status == ESP_NOW_SEND_SUCCESS){
-      Serial.println("Mensagem enviada para o FB");
-  }else{
-      Serial.println("Erro ao enviar mensage para o FB");
-  }
-}
 
 void send_power(float m1,float m2,float m3,float m4){
   String result = "<0,"+ String(m1)+ "," + String(m2) + "," + "1," + String(m3) + "," + String(m4) + ">";
@@ -167,6 +159,7 @@ void motors_control(float x, float y, float angular) {
 
 
 void setup() {
+  delay(100);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
 
@@ -220,7 +213,7 @@ void loop() {
   if (dribbler == 1){
     Dribbler.write(MAX_DRIBBLER);
   }*/
-  if (!stop) motors_control(v_l, v_a,th); //aplica os valores para os motores
+  if (!stop) motors_control(v_l, v_a, th); //aplica os valores para os motores
 
   if(new_data){
     DataFeedback.password = FB_PASSWORD;

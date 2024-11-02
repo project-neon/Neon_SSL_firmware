@@ -32,19 +32,26 @@ int n_robots = 0;
 
 int FB_PASSWORD = 1500;
 
-int ids_connected[3] = {0, 0 ,0};
+int ids_connected[6] = {-1, -1 ,-1, -1, -1, -1};
 
 const byte num_chars = 64;
-String last_id1_msg = "<0,0,0>";
-String last_id2_msg = "<0,0,0>";
-String last_id3_msg = "<0,0,0>";
+
+String last_id0_msg = "<-1,-1,-1>";
+String last_id1_msg = "<-1,-1,-1>";
+String last_id2_msg = "<-1,-1,-1>";
+String last_id3_msg = "<-1,-1,-1>";
+String last_id4_msg = "<-1,-1,-1>";
+String last_id5_msg = "<-1,-1,-1>";
 
 fb_message FeedbackData;
 
 void updateIdsConnected(int id){
-  if (id == 1) ids_connected[0] = 1;
-  if (id == 2) ids_connected[1] = 2;
-  if (id == 3) ids_connected[2] = 3;
+  if (id == 0) ids_connected[0] = 0;
+  if (id == 1) ids_connected[1] = 1;
+  if (id == 2) ids_connected[2] = 2;
+  if (id == 3) ids_connected[3] = 3;
+  if (id == 4) ids_connected[4] = 4;
+  if (id == 5) ids_connected[5] = 5;
 }
 
 //verifica se o id esta conectado
@@ -55,7 +62,7 @@ void updateNumberOfConnections(int id){
     return;
   }
   else{ 
-    for(int j = 0; j < 3; j++){
+    for(int j = 0; j < 6; j++){
       if (ids_connected[j] == id){
         return;
       }
@@ -67,11 +74,12 @@ void updateNumberOfConnections(int id){
 
 
 void updateLastMsgReceived(int id, int rssi, int battery){
-  //char last_received = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
+  if (id == 0) last_id0_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
   if (id == 1) last_id1_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
- // if (id == 2) strcpy(last_id2_msg, last_received);
   if (id == 2) last_id2_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
   if (id == 3) last_id3_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
+  if (id == 4) last_id4_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
+  if (id == 5) last_id5_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
 }
 
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
@@ -103,7 +111,7 @@ void loop() {
     ESP.restart();
   }
   if (n_robots != 0){
-    String message = last_id1_msg + last_id2_msg + last_id3_msg;
+    String message = last_id0_msg + last_id1_msg + last_id2_msg + last_id3_msg + last_id4_msg + last_id5_msg;
     Serial.flush(); 
     Serial.println(message);
   }
