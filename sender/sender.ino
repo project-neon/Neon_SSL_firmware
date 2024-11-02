@@ -5,7 +5,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-uint8_t mac_address_robot[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //mac address do robo
+uint8_t broadcast_address[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //mac address do robo
 
 
 esp_now_peer_info_t peer;
@@ -21,19 +21,9 @@ typedef struct struct_message {
   char message[numChars];
 } struct_message;
 
-/*typedef struct struct_message {
-  int data;
-} struct_message;*/
 
 struct_message commands;
 
-void OnDataSent(const uint8_t *mac_address, esp_now_send_status_t status) {
-  if (status == ESP_NOW_SEND_SUCCESS){
-      Serial.println("Mensagem enviada para o robo");
-  }else{
-      Serial.println("Erro ao enviar mensagem para o robo");
-  }
-}
 
 void setup() {
   Serial.begin(115200);
@@ -46,13 +36,11 @@ void setup() {
   else Serial.println("ESPNOW OK ");
   peer.channel = 0;  
   peer.encrypt = false;
-  memcpy(peer.peer_addr, mac_address_robot, 6);
+  memcpy(peer.peer_addr, broadcast_address, 6);
   if (esp_now_add_peer(&peer) != ESP_OK){
     Serial.println("Failed to add peer");
     ESP.restart();
   }
-  esp_now_register_send_cb(OnDataSent);
-  //commands.password = ROBOT_PASSWORD;
 }
 
 void loop() {
@@ -62,12 +50,9 @@ void loop() {
   if (newData == true){
       strcpy(commands.message, receivedChars);
       commands.password = ROBOT_PASSWORD;
+      sendData();
       newData = false;
-      esp_err_t result = esp_now_send(mac_address_robot, (uint8_t *) &commands, sizeof(commands));
-      delay(3);
   }
- // commands.data = 1;
-  //esp_err_t result = esp_now_send(mac_address_robot, /(uint8_t *) &commands, sizeof(commands));
 }
 
 void recvWithStartEndMarkers(){
@@ -107,14 +92,10 @@ void recvWithStartEndMarkers(){
 }
 
 
-/*
-            {
-                robot_id: int,
-                color: 'yellow|blue',
-                vx: float,
-                vy: float,
-                can_kick: bool,
-                actual_theta: float
-                
-            }
-*/
+void sendData(){   
+    // esse delay é necessário para que os dados sejam enviados corretamente
+    esp_err_t message = esp_now_send(broadcast_address, (uint8_t *) &commands, sizeof(commands));
+    digitalWrite(2,HIGH);
+    delay(3);
+    digitalWrite(2,LOW);
+}

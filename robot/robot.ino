@@ -19,13 +19,13 @@
 
 uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94}; //mac address do feedback
 
-uint8_t mac_address_station[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-//00:00:00:00:00:00
+uint8_t mac_address_station[6] = {0xC0, 0x49, 0xEF, 0xE4, 0xDC, 0xE4};
+//C0:49:EF:E4:DC:E4
 
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
 
-int robot_id = 0;
+int robot_id = 1;
 int id;
 int first_mark = 0, second_mark;
 int last = 0;
@@ -48,6 +48,7 @@ esp_now_peer_info_t peer;
 
 //struct received
 typedef struct struct_data {
+  int password;
   char message[numChars];
 } struct_data;
 
@@ -90,7 +91,7 @@ struct_feedback DataFeedback;
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
 
-  //if (DataReceived.password != ROBOT_PASSWORD) return;
+  if (DataReceived.password != ROBOT_PASSWORD) return;
 
   strcpy(commands, DataReceived.message);
   new_data=1;
@@ -112,14 +113,13 @@ void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
 
   bool is_from_station = true;
 
- /*for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
       if (hdr->addr2[i] != mac_address_station[i]) {
           is_from_station = false;
           break;
       }
   }
-  if (is_from_station) */
-  rssi = ppkt->rx_ctrl.rssi;
+  if (is_from_station)  rssi = ppkt->rx_ctrl.rssi;
 }
 
 
