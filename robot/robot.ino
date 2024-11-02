@@ -16,10 +16,9 @@
 #include "esp_wifi.h"
 //#include <ESP32Servo.h>
 
-//2 fitas: 08:B6:1F:28:E3:94
+
 uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94}; //mac address do feedback
 
-//uint8_t mac_address_station[6] = {0x24, 0x0A, 0xC4, 0x82, 0x93, 0x04};
 uint8_t mac_address_station[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 //00:00:00:00:00:00
 
@@ -56,12 +55,10 @@ typedef struct struct_data {
 //struct to send
 
 /*
+- feedback password
 - id
 - rssi;
 - battery
-- kick;
-- velocidade real;
-- temperature AINDA NAO
 */
 
 typedef struct struct_feedback {
@@ -160,11 +157,6 @@ float calculate_motor(float v_x, float v_y, float angular, float L,float radius,
 
 void motors_control(float x, float y, float angular) {
 
-//  float vel_RD = calculate_motor(x, y, angular, L, r, 3);
-//  float vel_RT = calculate_motor(x, y, angular, L, r, 4);
-//  float vel_LD = calculate_motor(x, y, angular, L, r, 1);
-//  float vel_LT = calculate_motor(x, y, angular, L, r, 2);
-
   float vel_RD = calculate_motor(x, y, angular, L, r, 1);
   float vel_RT = calculate_motor(x, y, angular, L, r, 2);
   float vel_LD = calculate_motor(x, y, angular, L, r, 3);
@@ -195,10 +187,7 @@ void setup() {
     Serial.println("Failed to add peer");
     ESP.restart();
   }
-  //esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
-
-
 
   esp_wifi_set_promiscuous(true);
   esp_wifi_set_promiscuous_rx_cb(&promiscuous_rx_cb);
@@ -240,10 +229,6 @@ void loop() {
     DataFeedback.battery = 250;
     esp_err_t result = esp_now_send(mac_address_feedback, (uint8_t *) &DataFeedback, sizeof(DataFeedback));
   }
- /* else{
-    Serial.println("Nenhuma mensagem recebida");
-  }*/
-
 }
 
 
