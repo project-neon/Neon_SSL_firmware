@@ -6,7 +6,7 @@ BLDCDriver3PWM driver = BLDCDriver3PWM(PA0, PA1, PA2, PB10);
 BLDCDriver3PWM driver2 = BLDCDriver3PWM(PA6, PA7, PB0, PA5);
 
 // This is de code for the board that is in robots
-int robot_id = 1;
+int robot_id = 0;
 int id;
 int first_mark = 0, second_mark;
 

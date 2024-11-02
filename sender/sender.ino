@@ -28,11 +28,15 @@ struct_message commands;
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
+
+  pinMode(2, OUTPUT);
+
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     ESP.restart();
     return;
   }
+
   else Serial.println("ESPNOW OK ");
   peer.channel = 0;  
   peer.encrypt = false;
@@ -44,7 +48,6 @@ void setup() {
 }
 
 void loop() {
-  //commands.message = "aaa";
   recvWithStartEndMarkers();
   
   if (newData == true){
