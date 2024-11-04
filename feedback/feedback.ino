@@ -21,8 +21,7 @@ typedef struct struct_message {
   int password;
   int id;
   int rssi;
-  int battery;
- 
+  float battery;
  // bool sensor_kick;
 } fb_message;
 
