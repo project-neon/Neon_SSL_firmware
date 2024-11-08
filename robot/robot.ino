@@ -186,9 +186,7 @@ void setup() {
 }
 
 float readBattery(){
- // int adc_battery_read = analogRead(VOLTAGE_SENSOR_PIN);
-  int adc_read = 3200;
- 
+  int adc_read = analogRead(VOLTAGE_SENSOR_PIN);
  
   float voltage_output_read = (adc_read*0.00511);
 
