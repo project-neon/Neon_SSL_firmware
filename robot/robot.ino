@@ -25,7 +25,7 @@ uint8_t mac_address_station[6] = {0xC0, 0x49, 0xEF, 0xE4, 0xDC, 0xE4};
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
 
-int robot_id = 1;
+int robot_id = 2;
 int id;
 int first_mark = 0, second_mark;
 int last = 0;
@@ -65,7 +65,7 @@ typedef struct struct_feedback {
   int password;
   int id;
   int rssi;
-  int battery; 
+  float battery; 
 } struct_feedback;
 
 
@@ -106,7 +106,6 @@ void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
   */
   if (type != WIFI_PKT_MGMT) return;
 
-    
   const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buff;
   const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
   const wifi_ieee80211_mac_hdr_t *hdr = &ipkt->hdr;
@@ -163,11 +162,11 @@ void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
 
+  pinMode(VOLTAGE_SENSOR_PIN, OUTPUT);
 /*
   Dribbler.setPeriodHertz(FREQUENCIA_DRIBBLER);
   Dribbler.attach(DRIBBLER_PIN, MIN_THROTTLE_DRIBBLER, MAX_THROTTLE_DRIBBLER);
 */
-
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     ESP.restart();
@@ -186,9 +185,12 @@ void setup() {
   esp_wifi_set_promiscuous_rx_cb(&promiscuous_rx_cb);
 }
 
-int readBattery(){
-  int voltage = analogRead(VOLTAGE_SENSOR_PIN);
-  return voltage;
+float readBattery(){
+  int adc_read = analogRead(VOLTAGE_SENSOR_PIN);
+ 
+  float voltage_output_read = (adc_read*0.00511);
+
+  return voltage_output_read;
 }
 
 void loop() {
@@ -219,12 +221,10 @@ void loop() {
     DataFeedback.password = FB_PASSWORD;
     DataFeedback.rssi = rssi;
     DataFeedback.id = robot_id;
-    DataFeedback.battery = 250;
+    DataFeedback.battery = readBattery();
     esp_err_t result = esp_now_send(mac_address_feedback, (uint8_t *) &DataFeedback, sizeof(DataFeedback));
   }
 }
-
-
 
 
 void parseData(){
@@ -253,7 +253,5 @@ void parseData(){
           strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ","); 
         }
-    } 
-  
-   
+    }   
 }
