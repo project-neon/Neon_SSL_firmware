@@ -25,7 +25,7 @@ uint8_t mac_address_station[6] = {0xC0, 0x49, 0xEF, 0xE4, 0xDC, 0xE4};
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
 
-int robot_id = 1;
+int robot_id = 2;
 int id;
 int first_mark = 0, second_mark;
 int last = 0;
@@ -161,6 +161,8 @@ void setup() {
   delay(100);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
+
+  pinMode(VOLTAGE_SENSOR_PIN, OUTPUT);
 /*
   Dribbler.setPeriodHertz(FREQUENCIA_DRIBBLER);
   Dribbler.attach(DRIBBLER_PIN, MIN_THROTTLE_DRIBBLER, MAX_THROTTLE_DRIBBLER);
@@ -184,9 +186,13 @@ void setup() {
 }
 
 float readBattery(){
-  float voltage_read = analogRead(VOLTAGE_SENSOR_PIN);
-  float battery = (voltage_read*60000)/10000; // (vin*(r2+r3))/r3
-  return battery;
+ // int adc_battery_read = analogRead(VOLTAGE_SENSOR_PIN);
+  int adc_read = 3200;
+ 
+ 
+  float voltage_output_read = (adc_read*0.00511);
+
+  return voltage_output_read;
 }
 
 void loop() {

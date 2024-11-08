@@ -5,26 +5,17 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-//PENSAR EM COMO ORGANIZAR A RECEPCAO DOS DADOS DOS 3 ROBOS
 
 unsigned long first_mark = 0;
 
 unsigned long second_mark = 0;
-
-/*typedef struct struct_message {
-  int id;
-} fb_message;*/
-
-
 
 typedef struct struct_message {
   int password;
   int id;
   int rssi;
   float battery;
- // bool sensor_kick;
 } fb_message;
-
 
 
 int n_robots = 0;
@@ -35,12 +26,12 @@ int ids_connected[6] = {-1, -1 ,-1, -1, -1, -1};
 
 const byte num_chars = 64;
 
-String last_id0_msg = "<-1,-1,-1>";
-String last_id1_msg = "<-1,-1,-1>";
-String last_id2_msg = "<-1,-1,-1>";
-String last_id3_msg = "<-1,-1,-1>";
-String last_id4_msg = "<-1,-1,-1>";
-String last_id5_msg = "<-1,-1,-1>";
+String last_id0_msg = "<-1,-1,-1.0>";
+String last_id1_msg = "<-1,-1,-1.0>";
+String last_id2_msg = "<-1,-1,-1.0>";
+String last_id3_msg = "<-1,-1,-1.0>";
+String last_id4_msg = "<-1,-1,-1.0>";
+String last_id5_msg = "<-1,-1,-1.0>";
 
 fb_message FeedbackData;
 
@@ -72,7 +63,7 @@ void updateNumberOfConnections(int id){
 }
 
 
-void updateLastMsgReceived(int id, int rssi, int battery){
+void updateLastMsgReceived(int id, int rssi, float battery){
   if (id == 0) last_id0_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
   if (id == 1) last_id1_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
   if (id == 2) last_id2_msg = "<"+ String(id)+ "," + String(rssi) + "," + String(battery)+">";
@@ -106,7 +97,6 @@ void loop() {
   if (!Serial){
     Serial.begin(9600);
     delay(100);
-    // Reinicializa se o serial não está funcionando
     ESP.restart();
   }
   if (n_robots != 0){
