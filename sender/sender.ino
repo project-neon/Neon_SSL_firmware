@@ -2,19 +2,21 @@
 #include <esp_wifi.h>
 #include <WiFi.h>
 
+#define ROBOT_PASSWORD 1420
 
 // MAC Adress genérico para enviar os dados no canal selecionado
 uint8_t broadcast_adr[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 //==============
 
-const byte numChars = 64;
+const byte numChars = 200;
 char receivedChars[numChars];
 char tempChars[numChars];   
 boolean newData = false;     
 int id, count;
 
 typedef struct struct_message{
+  int password;
   char message[numChars];
   } struct_message;
 
@@ -60,6 +62,7 @@ void loop() {
   
   if (newData == true){
       strcpy(commands.message, receivedChars);
+      commands.password = ROBOT_PASSWORD;
       sendData();
       newData = false;
   }

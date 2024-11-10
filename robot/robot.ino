@@ -2,13 +2,14 @@
 #include <esp_wifi.h>
 #include <WiFi.h>
 
+#define ROBOT_PASSWORD 1420
 
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
 
 
 // This is de code for the board that is in robots
-int robot_id = 0;
+int robot_id = 2;
 int id;
 int first_mark = 0, second_mark;
 int last = 0;
@@ -20,22 +21,25 @@ float v_l, v_a, th;
 float last_error = 0;
 float error_sum = 0;
 
-const byte numChars = 64;
+const byte numChars = 200;
 char commands[numChars];
 char tempChars[numChars];
 char last_message[numChars];
 
 typedef struct struct_message{
-  char message[64];
+  int password;
+  char message[numChars];
   } struct_message;
 
 struct_message rcv_commands;
 
 void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {
-  memcpy(&rcv_commands, incomingData, sizeof(rcv_commands));
-  // Update the structures with the new incoming data
-  strcpy(commands, rcv_commands.message);
-  new_data=1;
+    memcpy(&rcv_commands, incomingData, sizeof(rcv_commands));
+    // Update the structures with the new incoming data
+    if (rcv_commands.password != ROBOT_PASSWORD) return ;
+    first_mark = millis();
+    strcpy(commands, rcv_commands.message);
+    new_data=1;
 }
 
 void send_power(float m1,float m2,float m3,float m4){
@@ -115,8 +119,7 @@ void loop() {
   
   strcpy(tempChars, commands); // necessário para proteger a informação original
   //Serial.println(tempChars);
-  if(new_data) parseData();
-
+  parseData();
   second_mark = millis();
   //Serial.println(second_mark - first_mark);
   if (second_mark - first_mark > 300) {
@@ -144,7 +147,7 @@ void parseData(){
         if(id == robot_id){ 
           new_data=0;
           stop = 0;
-          first_mark = millis();        
+          
           strtokIndx = strtok(NULL, ",");  
           v_l = atof(strtokIndx);       
           strtokIndx = strtok(NULL, ",");         
