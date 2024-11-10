@@ -3,6 +3,7 @@
 #include <WiFi.h>
 
 #define ROBOT_PASSWORD 1420
+#define KICKER_PIN 32
 
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
@@ -11,8 +12,10 @@ float r = 0.03;
 // This is de code for the board that is in robots
 int robot_id = 2;
 int id;
-int first_mark = 0, second_mark;
+int first_mark = 0, second_mark, kicker_mark;
 int last = 0;
+
+int kick_time;
 
 bool stop=0;
 volatile bool new_data=0;
@@ -87,9 +90,21 @@ void motors_control(float x, float y, float angular) {
   send_power(vel_RD, vel_RT, vel_LD, vel_LT);
 }
 
+
+void kick(int microseconds_time){
+  digitalWrite(KICKER_PIN, HIGH);
+  delayMicroseconds(microseconds_time);
+  digitalWrite(KICKER_PIN, LOW);
+}
+
 void setup() {
   delay(100);
   Serial.begin(115200);
+
+  pinMode(KICKER_PIN, OUTPUT);
+
+  digitalWrite(KICKER_PIN, LOW);
+  
   // configurações comunicação
   ESP_ERROR_CHECK(esp_netif_init());
   ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -130,6 +145,11 @@ void loop() {
     error_sum = 0;
     stop = true;
   }
+  if (kick_time != 0) && (second_mark - kicker_mark > 500){
+    kicker_mark = millis();
+    kick(kick_time);
+    kick_time = 0;
+  }
 
 //  if(millis()-last > 1){
 //    last = millis();
@@ -155,6 +175,8 @@ void parseData(){
           strtokIndx = strtok(NULL, ",");         
           th = atof(strtokIndx);
           strtokIndx = strtok(NULL, ","); 
+          kick_time = atof(strtokIndx);
+          strtokIndx = strtok(NULL, ",");
         }
 
        else{
@@ -162,6 +184,7 @@ void parseData(){
           strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ","); 
+          strtokIndx = strtok(NULL, ",");
         }
     } 
    
