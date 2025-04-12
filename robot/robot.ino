@@ -30,6 +30,15 @@ int id;
 int first_mark = 0, second_mark;
 int last = 0;
 
+float vel_step = 100;
+float a = 0; //aceleração
+int last_time = 0;
+float dt = 0;
+float previous_RD = 0;
+float previous_RT = 0;
+float previous_LD = 0;
+float previous_LT = 0;
+
 bool stop=0;
 volatile bool new_data=0;
 
@@ -141,19 +150,44 @@ float calculate_motor(float v_x, float v_y, float angular, float L,float radius,
   }  
   if (motor == 4) {
     vel = ((2*L*angular) + (sqrt(3)*v_x) + (sqrt(3)*v_y))/(2*r);
-  } 
+  }
   return vel;
 
 }
 
 void motors_control(float x, float y, float angular) {
-
   float vel_RD = calculate_motor(x, y, angular, L, r, 1);
   float vel_RT = calculate_motor(x, y, angular, L, r, 2);
   float vel_LD = calculate_motor(x, y, angular, L, r, 3);
   float vel_LT = calculate_motor(x, y, angular, L, r, 4);
 
+  vel_RD = acceleration(vel_RD, previous_RD, vel_step);
+  vel_RT = acceleration(vel_RT, previous_RT, vel_step);
+  vel_LD = acceleration(vel_LD, previous_LD, vel_step);
+  vel_LT = acceleration(vel_LT, previous_LT, vel_step);  
+
   send_power(vel_RD, vel_RT, vel_LD, vel_LT);
+
+  previous_RD = vel_RD;
+  previous_RT = vel_RT;
+  previous_LD = vel_LD;
+  previous_LT = vel_LT;
+}
+
+
+float acceleration(float m, float previous_m, float vel_step){
+  a = (abs(m-previous_m))/dt;
+  
+  if(a > (vel_step)){
+    if(m > previous_m){
+      m = previous_m + (vel_step * dt);
+      }
+      
+    else{
+      m = previous_m - (vel_step * dt);
+      }
+  }
+  return m;
 }
 
 
@@ -194,7 +228,6 @@ float readBattery(){
 }
 
 void loop() {
-
   strcpy(tempChars, commands); // necessário para proteger a informação original
 
   if(new_data) parseData(); //envia os dados para o array commands
@@ -208,14 +241,20 @@ void loop() {
     last_error = 0;
     error_sum = 0;
     stop = true;
-  }/*
+  }
+  /*
   if (sensor_kick == 1){
     ledcWrite(kick_straight); //ver como vao ficar os parametros da solenoide
   }
   if (dribbler == 1){
     Dribbler.write(MAX_DRIBBLER);
   }*/
-  if (!stop) motors_control(v_l, v_a, th); //aplica os valores para os motores
+  
+  int crt = millis();
+  dt = (crt - last_time)/1000.0;
+  last_time = crt;
+  //if (!stop) 
+  motors_control(v_l, v_a, th); //aplica os valores para os motores
 
   if(new_data){
     DataFeedback.password = FB_PASSWORD;
