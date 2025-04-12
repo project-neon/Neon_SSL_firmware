@@ -1,13 +1,15 @@
+///station que envia os comandos para o robô - 1 fitas
+
+#define ROBOT_PASSWORD 2400
+
 #include <esp_now.h>
-#include <esp_wifi.h>
 #include <WiFi.h>
 
-#define ROBOT_PASSWORD 1420
 
-// MAC Adress genérico para enviar os dados no canal selecionado
-uint8_t broadcast_adr[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t broadcast_address[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //mac address do robo
 
-//==============
+
+esp_now_peer_info_t peer;
 
 const byte numChars = 200;
 char receivedChars[numChars];
@@ -15,47 +17,37 @@ char tempChars[numChars];
 boolean newData = false;     
 int id, count;
 
-typedef struct struct_message{
+
+typedef struct struct_message {
   int password;
   char message[numChars];
-  } struct_message;
+} struct_message;
+
 
 struct_message commands;
 
-//==============
-
-esp_now_peer_info_t peerInfo;
 
 void setup() {
   Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+
   pinMode(2, OUTPUT);
-  ESP_ERROR_CHECK(esp_netif_init());
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  ESP_ERROR_CHECK(esp_wifi_start());
-  ESP_ERROR_CHECK(esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE));
-  esp_wifi_set_max_tx_power(84);
 
-
-  if (esp_now_init() != ESP_OK) 
-  {
+  if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
+    ESP.restart();
     return;
   }
 
-  memcpy(peerInfo.peer_addr, broadcast_adr, 6);
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) 
-  {
+  else Serial.println("ESPNOW OK ");
+  peer.channel = 0;  
+  peer.encrypt = false;
+  memcpy(peer.peer_addr, broadcast_address, 6);
+  if (esp_now_add_peer(&peer) != ESP_OK){
     Serial.println("Failed to add peer");
-    return;
+    ESP.restart();
   }
- 
 }
-
-//=============
 
 void loop() {
   recvWithStartEndMarkers();
@@ -68,8 +60,6 @@ void loop() {
   }
 }
 
-//==============
-
 void recvWithStartEndMarkers(){
     static boolean recvInProgress = false;
     static byte ndx = 0;
@@ -79,7 +69,9 @@ void recvWithStartEndMarkers(){
 
     while (Serial.available()){
         //  Formato da mensagem::
-        //  <[id1],[v_l1],[v_a1],[id2],[v_l2],[v_a2],[id3],[v_l3],[v_a3]>
+        // <[id1],[v_x1],[v_l1],[kick_straight],[kick_dug1],[theta1: float], [dribler1: bool], [
+        //  [id2],[v_x2],[v_l2],[kick2],[theta2], [kick_dug2]
+        //  [id3],[v_x3],[v_l3],[kick3],[theta3]>
         in = Serial.read();
 
         if (recvInProgress == true){
@@ -107,7 +99,7 @@ void recvWithStartEndMarkers(){
 
 void sendData(){   
     // esse delay é necessário para que os dados sejam enviados corretamente
-    esp_err_t message = esp_now_send(broadcast_adr, (uint8_t *) &commands, sizeof(commands));
+    esp_err_t message = esp_now_send(broadcast_address, (uint8_t *) &commands, sizeof(commands));
     digitalWrite(2,HIGH);
     delay(3);
     digitalWrite(2,LOW);
