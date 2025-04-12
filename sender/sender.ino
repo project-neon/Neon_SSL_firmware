@@ -5,16 +5,18 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+
 uint8_t broadcast_address[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //mac address do robo
 
 
 esp_now_peer_info_t peer;
 
-const byte numChars = 64;
+const byte numChars = 200;
 char receivedChars[numChars];
 char tempChars[numChars];   
 boolean newData = false;     
 int id, count;
+
 
 typedef struct struct_message {
   int password;

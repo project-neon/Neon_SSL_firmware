@@ -1,6 +1,6 @@
 #define VOLTAGE_SENSOR_PIN 34
 #define SENSOR_KICKER 14
-#define KICKER_PIN 18
+#define KICKER_PIN 32
 #define DRIBBLER_PIN 32
 #define MAX_DRIBBLER 110 //não é definitivo
 
@@ -17,6 +17,7 @@
 //#include <ESP32Servo.h>
 
 
+
 uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94}; //mac address do feedback
 
 uint8_t mac_address_station[6] = {0xC0, 0x49, 0xEF, 0xE4, 0xDC, 0xE4};
@@ -25,10 +26,12 @@ uint8_t mac_address_station[6] = {0xC0, 0x49, 0xEF, 0xE4, 0xDC, 0xE4};
 float L = 0.0785; //distancia entre roda e centro do robo
 float r = 0.03;
 
+
 int robot_id = 2;
 int id;
-int first_mark = 0, second_mark;
+int first_mark = 0, second_mark, kicker_mark;
 int last = 0;
+
 
 float vel_step = 100;
 float a = 0; //aceleração
@@ -46,12 +49,15 @@ float v_l, v_a, th;
 int last_error = 0;
 float error_sum = 0;
 
+
 int32_t rssi = 0;
 
-const byte numChars = 64;
+const byte numChars = 200;
+
 char commands[numChars];
 char tempChars[numChars];
 char last_message[numChars];
+
 
 esp_now_peer_info_t peer;
 
@@ -94,6 +100,7 @@ typedef struct {
 } wifi_ieee80211_packet_t;
 
 
+
 struct_data DataReceived;
 struct_feedback DataFeedback;
 
@@ -102,6 +109,7 @@ void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int 
 
   if (DataReceived.password != ROBOT_PASSWORD) return;
 
+  first_mark = millis();
   strcpy(commands, DataReceived.message);
   new_data=1;
 }
@@ -175,6 +183,13 @@ void motors_control(float x, float y, float angular) {
 }
 
 
+void kick(int microseconds_time){
+  digitalWrite(KICKER_PIN, HIGH);
+  delayMicroseconds(microseconds_time);
+  digitalWrite(KICKER_PIN, LOW);
+}
+
+
 float acceleration(float m, float previous_m, float vel_step){
   a = (abs(m-previous_m))/dt;
   
@@ -230,6 +245,7 @@ float readBattery(){
 void loop() {
   strcpy(tempChars, commands); // necessário para proteger a informação original
 
+
   if(new_data) parseData(); //envia os dados para o array commands
 
   second_mark = millis();
@@ -242,6 +258,12 @@ void loop() {
     error_sum = 0;
     stop = true;
   }
+  if (kick_time != 0) && (second_mark - kicker_mark > 500){
+    kicker_mark = millis();
+    kick(kick_time);
+    kick_time = 0;
+  }
+
   /*
   if (sensor_kick == 1){
     ledcWrite(kick_straight); //ver como vao ficar os parametros da solenoide
@@ -276,7 +298,7 @@ void parseData(){
         if(id == robot_id){ 
           new_data=0;
           stop = 0;
-          first_mark = millis();        
+          
           strtokIndx = strtok(NULL, ",");  
           v_l = atof(strtokIndx);       
           strtokIndx = strtok(NULL, ",");         
@@ -284,6 +306,8 @@ void parseData(){
           strtokIndx = strtok(NULL, ",");         
           th = atof(strtokIndx);
           strtokIndx = strtok(NULL, ","); 
+          kick_time = atof(strtokIndx);
+          strtokIndx = strtok(NULL, ",");
         }
 
        else{
@@ -291,6 +315,7 @@ void parseData(){
           strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ",");         
           strtokIndx = strtok(NULL, ","); 
+          strtokIndx = strtok(NULL, ",");
         }
     }   
 }
