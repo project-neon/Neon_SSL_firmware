@@ -19,9 +19,7 @@ esp_now_peer_info_t peer;
 
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
     memcpy(&DataReceived, incomingData, sizeof(DataReceived));
-  
     if (DataReceived.password != ROBOT_PASSWORD) return;
-  
     first_mark = millis();
     strcpy(commands, DataReceived.message);
     new_data=1;

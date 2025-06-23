@@ -1,5 +1,6 @@
 int robot_id = 2;
 bool useFeedback = true;
+bool computeRSSI = true;
 
 
 #define VOLTAGE_SENSOR_PIN 34
