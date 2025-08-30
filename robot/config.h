@@ -2,12 +2,12 @@ int robot_id = 2;
 bool useFeedback = true;
 bool computeRSSI = true;
 
-
+//com5
 #define VOLTAGE_SENSOR_PIN 34
 #define SENSOR_KICKER 14
 #define KICKER_PIN 32
 #define DRIBBLER_PIN 32
-#define MAX_DRIBBLER 110 //não é definitivo
+#define MAX_DRIBBLER 110 
 
 #define FREQUENCIA_DRIBBLER 50
 #define MIN_THROTTLE_DRIBBLER 1048
@@ -16,8 +16,8 @@ bool computeRSSI = true;
 #define ROBOT_PASSWORD 2400
 #define FB_PASSWORD 1500
 
-uint8_t mac_address_feedback[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94};
-uint8_t mac_address_station[6] = {0xC0, 0x49, 0xEF, 0xE4, 0xDC, 0xE4};
+uint8_t mac_address_feedback[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};  //{0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94};
+uint8_t mac_address_station[6] = {0xCC, 0xDB, 0xA7, 0x3F, 0xB6, 0x4C};
 
 
 

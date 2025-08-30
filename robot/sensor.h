@@ -25,6 +25,7 @@ void promiscuous_rx_cb(void *buff, wifi_promiscuous_pkt_type_t type) {
 
   for (int i = 0; i < 6; i++) {
       if (hdr->addr2[i] != mac_address_station[i]) {
+         // Serial.println("Not_from_station");
           is_from_station = false;
           break;
       }

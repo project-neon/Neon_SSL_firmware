@@ -3,7 +3,7 @@ float previous_RD = 0, previous_RT = 0, previous_LD = 0, previous_LT = 0;
 void send_power(float m1,float m2,float m3,float m4){
     String result = "<0,"+ String(m1)+ "," + String(m2) + "," + "1," + String(m3) + "," + String(m4) + ">";
   
-    Serial.println(result);
+   // Serial.println(result);
 }
 
 float calculate_motor(float v_x, float v_y, float angular, float L,float radius, int motor){

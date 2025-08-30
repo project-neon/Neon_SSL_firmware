@@ -1,6 +1,7 @@
-///Esp q recebe os dados do robo - 2 fitas
+///Esp q recebe os dados do robo - 2 fitas - com4 - 08:B6:1F:28:E3:94
 
 #define REFRESH_RATE 500
+#define FB_PASSWORD 1500
 
 #include <esp_now.h>
 #include <WiFi.h>
@@ -19,8 +20,6 @@ typedef struct struct_message {
 
 
 int n_robots = 0;
-
-int FB_PASSWORD = 1500;
 
 int ids_connected[6] = {-1, -1 ,-1, -1, -1, -1};
 
@@ -74,12 +73,14 @@ void updateLastMsgReceived(int id, int rssi, float battery){
 
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   memcpy(&FeedbackData, incomingData, sizeof(FeedbackData));
-  if (FeedbackData.password == FB_PASSWORD){
+  if(FeedbackData.password != FB_PASSWORD) Serial.println("Wrong Password");
+  else{
     int new_id = FeedbackData.id;
     updateNumberOfConnections(new_id);
     updateLastMsgReceived(new_id, FeedbackData.rssi, FeedbackData.battery);
   }
 }
+
 
 void setup() {
   Serial.begin(9600);

@@ -15,11 +15,12 @@ void setup() {
   WiFi.mode(WIFI_STA);
 
   // Obtém o endereço MAC
-  String macAddress = WiFi.macAddress();
+  //String macAddress = WiFi.macAddress();
 
   // Exibe o endereço MAC no monitor serial
   Serial.print("Endereço MAC: ");
-  Serial.println(macAddress);
+ // Serial.println(macAddress);
+  //delay(1000);
 }
 
 void loop() {
@@ -29,5 +30,5 @@ void loop() {
   // Exibe o endereço MAC no monitor serial
   Serial.print("Endereço MAC: ");
   Serial.println(macAddress);
-
+  delay(1000);
 }
