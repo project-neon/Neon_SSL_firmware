@@ -1,4 +1,4 @@
-int robot_id = 2;
+int robot_id = 1;
 bool useFeedback = true;
 bool computeRSSI = true;
 
