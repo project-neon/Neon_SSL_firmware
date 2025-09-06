@@ -5,7 +5,8 @@ bool computeRSSI = true;
 //com5
 #define VOLTAGE_SENSOR_PIN 34
 #define SENSOR_KICKER 14
-#define KICKER_PIN 32
+#define KICKER_PIN 33
+#define CHARGE_KICKER_PIN 18
 #define DRIBBLER_PIN 32
 #define MAX_DRIBBLER 110 
 
@@ -26,8 +27,9 @@ float r = 0.03;
 
 const byte numChars = 200;
 
-const unsigned long KICK_COOLDOWN_MS = 500;
+const unsigned long KICK_COOLDOWN_MS = 2000;
 const unsigned long FAILSAFE_MS = 300;
+const unsigned long TIME_AFTER_CHARGE = 10;
 
 float vel_step = 100;
 
@@ -35,6 +37,7 @@ float vel_step = 100;
 //----------------------------------------//
 float v_l, v_a, th;
 int first_mark = 0, second_mark, kicker_mark;
+int charge_kicker = 0;
 char commands[numChars];
 char tempChars[numChars];
 char last_message[numChars];

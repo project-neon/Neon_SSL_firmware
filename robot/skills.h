@@ -6,4 +6,12 @@ void kick(int microseconds_time){
     kick_time = 0;
 }
 
+bool call_kicker(){
+    
+}
+
+
+void charge_kicker(){
+    digitalWrite(CHARGE_KICKER_PIN, HIGH);
+}
 //TO DO: dribbler
