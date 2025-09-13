@@ -8,7 +8,8 @@
 
 // regras de segurança
 const unsigned long KICK_COOLDOWN_MS   = 2000; // entre chutes
-const unsigned long TIME_AFTER_CHARGE  = 10;   // ms após desligar carga antes do chute
+const unsigned long TIME_AFTER_CHARGE  = 500;   // ms após desligar carga antes do chute
+const unsigned long TIME_BEFORE_CHARGE = 10; // ms após desligar carga antes do chute
 const unsigned long MIN_CHARGE_TIME_MS = 2000; // ms de carga antes de poder chutar
 
 static bool charge_enabled = false;
@@ -65,6 +66,7 @@ bool do_kick(uint32_t pulse_us) {
   digitalWrite(KICK_PIN, HIGH);
   delayMicroseconds(pulse_us);
   digitalWrite(KICK_PIN, LOW);
+  delayMicroseconds(TIME_BEFORE_CHARGE);
 
   last_kick_ms = millis();
 
