@@ -4,7 +4,7 @@
 #include "communication.h"
 #include "skills.h"
 #include "speed_control.h"
-
+#include "kicker.h"
 
 // // --- benchmarking do loop ---
 // static uint32_t loop_start_us = 0;
@@ -51,6 +51,7 @@ void setup(){
     WiFi.mode(WIFI_STA);
     pinMode(2, OUTPUT);
     pinMode(VOLTAGE_SENSOR_PIN, OUTPUT);
+    setup_kicker();
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");
         ESP.restart();
@@ -74,7 +75,7 @@ void loop(){
     if(new_data) parseData();
     second_mark = millis();
     if (second_mark - first_mark > FAILSAFE_MS) failSafe();
-    if ((kick_time != 0) && (second_mark - kicker_mark > KICK_COOLDOWN_MS)) kick(kick_time);
+    if ((kick_time != 0) && (second_mark - kicker_mark > KICK_COOLDOWN_MS)) kicker_control();
     crt = millis();
     dt = (crt - last_time)/1000.0;
     last_time = crt;

@@ -27,9 +27,9 @@ float r = 0.03;
 
 const byte numChars = 200;
 
-const unsigned long KICK_COOLDOWN_MS = 2000;
+//const unsigned long KICK_COOLDOWN_MS = 2000;
 const unsigned long FAILSAFE_MS = 300;
-const unsigned long TIME_AFTER_CHARGE = 10;
+//const unsigned long TIME_AFTER_CHARGE = 10;
 
 float vel_step = 100;
 
@@ -69,4 +69,3 @@ typedef struct {
   wifi_ieee80211_mac_hdr_t hdr;
   uint8_t payload[0]; 
 } wifi_ieee80211_packet_t;
-
