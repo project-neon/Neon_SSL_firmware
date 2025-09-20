@@ -75,7 +75,8 @@ void loop(){
     if(new_data) parseData();
     second_mark = millis();
     if (second_mark - first_mark > FAILSAFE_MS) failSafe();
-    if ((kick_time != 0) && (second_mark - kicker_mark > KICK_COOLDOWN_MS)) kicker_control();
+    //if ((kick_time != 0) && (second_mark - kicker_mark > KICK_COOLDOWN_MS)) kicker_control();
+    kicker_control();
     crt = millis();
     dt = (crt - last_time)/1000.0;
     last_time = crt;

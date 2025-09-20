@@ -1,6 +1,6 @@
-int robot_id = 1;
-bool useFeedback = true;
-bool computeRSSI = true;
+int robot_id = 2;
+bool useFeedback = false;
+bool computeRSSI = false;
 
 //com5
 #define VOLTAGE_SENSOR_PIN 34
@@ -16,6 +16,8 @@ bool computeRSSI = true;
 
 #define ROBOT_PASSWORD 2400
 #define FB_PASSWORD 1500
+
+static bool waiting_to_kick = false;
 
 uint8_t mac_address_feedback[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};  //{0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94};
 uint8_t mac_address_station[6] = {0xCC, 0xDB, 0xA7, 0x3F, 0xB6, 0x4C};

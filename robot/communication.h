@@ -51,7 +51,7 @@ void parseData(){
       strtokIndx = strtok(NULL, ",");         
       th = atof(strtokIndx);
       strtokIndx = strtok(NULL, ","); 
-      kick_time = atof(strtokIndx);
+      if(!waiting_to_kick) kick_time = atof(strtokIndx);
       strtokIndx = strtok(NULL, ",");
     }
 

@@ -2,7 +2,7 @@
 #define CHARGE_PIN  18
 
 // regras de segurança
-const unsigned long KICK_COOLDOWN_MS   = 2000; // entre chutes
+//const unsigned long KICK_COOLDOWN_MS   = 2000; // entre chutes
 const unsigned long TIME_AFTER_CHARGE  = 500;   // ms após desligar carga antes do chute
 const unsigned long TIME_BEFORE_CHARGE = 10; // ms após desligar carga antes do chute
 const unsigned long MIN_CHARGE_TIME_MS = 2000; // ms de carga antes de poder chutar
@@ -10,8 +10,8 @@ const unsigned long MIN_CHARGE_TIME_MS = 2000; // ms de carga antes de poder chu
 
 static bool charge_enabled = false;
 static unsigned long charge_on_since_ms = 0;
-static unsigned long last_kick_ms = 0;
-static unsigned long can_kick_now_since = 0;
+//static unsigned long last_kick_ms = 0;
+static unsigned long can_kick_since = 0;
 
 
 void charge_on() {
@@ -44,13 +44,13 @@ bool can_kick_now() {
 //    Serial.println(F(" ms (< 2000 ms)"));
     return false;
   }
-  if (now - last_kick_ms < KICK_COOLDOWN_MS) {
-//    Serial.print(F("[BLOCK] Cooldown restante: "));
-//    Serial.print(KICK_COOLDOWN_MS - (now - last_kick_ms));
-//    Serial.println(F(" ms"));
-    return false;
-  }
-  can_kick_now_since = millis();
+//  if (now - last_kick_ms < KICK_COOLDOWN_MS) {
+////    Serial.print(F("[BLOCK] Cooldown restante: "));
+////    Serial.print(KICK_COOLDOWN_MS - (now - last_kick_ms));
+////    Serial.println(F(" ms"));
+//    return false;
+//  }
+  can_kick_since = millis();
   return true;
 }
 
@@ -61,23 +61,31 @@ uint32_t calc_power(int pot){
 bool do_kick(uint32_t pulse_us) {
   //if (!can_kick_now()) return false;
 
-  unsigned long now = millis()
+  unsigned long now = millis();
   // AGORA -  TEMPO DO CAN KICK > TIME_AFTER_CHARGE 
-  charge_off();
+  if (now - can_kick_since > TIME_AFTER_CHARGE){
 
-  delay(TIME_AFTER_CHARGE);
-//  Serial.print(F("[KICK] Pulso de "));
-//  Serial.print(pulse_us);
-//  Serial.println(F(" us"));
-  digitalWrite(KICK_PIN, HIGH);
-  delayMicroseconds(pulse_us);
-  digitalWrite(KICK_PIN, LOW);
+    //delay(TIME_AFTER_CHARGE);
+  //  Serial.print(F("[KICK] Pulso de "));
+  //  Serial.print(pulse_us);
+  //  Serial.println(F(" us"));
+    digitalWrite(KICK_PIN, HIGH);
+    delayMicroseconds(pulse_us);
+    digitalWrite(KICK_PIN, LOW);
+  
+    //last_kick_ms = millis();
+  
+    charge_on();
 
-  last_kick_ms = millis();
-
-  charge_on();
-
-  return true;
+    waiting_to_kick = false;
+  
+    return true;
+  }
+  else{
+    if (!waiting_to_kick) charge_off();
+    waiting_to_kick = true;
+    return false;
+  }
 }
 
 void setup_kicker() {
@@ -89,11 +97,11 @@ void setup_kicker() {
   digitalWrite(CHARGE_PIN, LOW);
   charge_on();
 
-  last_kick_ms = millis() - KICK_COOLDOWN_MS;
+  //last_kick_ms = millis() - KICK_COOLDOWN_MS;
 }
 
 void kicker_control(){
-  if((kick_time > 0) && can_kick_now()){
+  if(can_kick_now() || waiting_to_kick){
     if (do_kick(calc_power(kick_time))) kick_time = 0;
   }
 }
