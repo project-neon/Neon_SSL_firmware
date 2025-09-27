@@ -80,4 +80,8 @@ void failSafe(){
     last_error = 0;
     error_sum = 0;
     stop = true;
+
+    kick_time = 0;
+    waiting_to_kick = false;
+    charge_off();
 }
