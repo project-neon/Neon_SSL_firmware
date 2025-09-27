@@ -31,27 +31,12 @@ void charge_off() {
   }
 }
 
+
 bool can_kick_now() {
   unsigned long now = millis();
-
-  if (!charge_enabled) {
-//    Serial.println(F("[BLOCK] Carregamento OFF"));
-    return false;
-  }
-  if (now - charge_on_since_ms < MIN_CHARGE_TIME_MS) {
-//    Serial.print(F("[BLOCK] Carregando ha "));
-//    Serial.print(now - charge_on_since_ms);
-//    Serial.println(F(" ms (< 2000 ms)"));
-    return false;
-  }
-//  if (now - last_kick_ms < KICK_COOLDOWN_MS) {
-////    Serial.print(F("[BLOCK] Cooldown restante: "));
-////    Serial.print(KICK_COOLDOWN_MS - (now - last_kick_ms));
-////    Serial.println(F(" ms"));
-//    return false;
-//  }
-  can_kick_since = millis();
-  return true;
+  if (!charge_enabled) return false;
+  if (now - charge_on_since_ms < MIN_CHARGE_TIME_MS) return false;
+  return true; 
 }
 
 uint32_t calc_power(int pot){
@@ -59,33 +44,10 @@ uint32_t calc_power(int pot){
 }
 
 bool do_kick(uint32_t pulse_us) {
-  //if (!can_kick_now()) return false;
-
-  unsigned long now = millis();
-  // AGORA -  TEMPO DO CAN KICK > TIME_AFTER_CHARGE 
-  if (now - can_kick_since > TIME_AFTER_CHARGE){
-
-    //delay(TIME_AFTER_CHARGE);
-  //  Serial.print(F("[KICK] Pulso de "));
-  //  Serial.print(pulse_us);
-  //  Serial.println(F(" us"));
-    digitalWrite(KICK_PIN, HIGH);
-    delayMicroseconds(pulse_us);
-    digitalWrite(KICK_PIN, LOW);
-  
-    //last_kick_ms = millis();
-  
-    charge_on();
-
-    waiting_to_kick = false;
-  
-    return true;
-  }
-  else{
-    if (!waiting_to_kick) charge_off();
-    waiting_to_kick = true;
-    return false;
-  }
+  digitalWrite(KICK_PIN, HIGH);
+  delayMicroseconds(pulse_us);
+  digitalWrite(KICK_PIN, LOW);
+  return true;
 }
 
 void setup_kicker() {
@@ -97,11 +59,33 @@ void setup_kicker() {
   digitalWrite(CHARGE_PIN, LOW);
   charge_on();
 
-  //last_kick_ms = millis() - KICK_COOLDOWN_MS;
 }
 
+
+
+
 void kicker_control(){
-  if(can_kick_now() || waiting_to_kick){
-    if (do_kick(calc_power(kick_time))) kick_time = 0;
+  if (kick_time <= 0) {
+    if (!charge_enabled) charge_on();
+    waiting_to_kick = false;
+    return;
+  }
+
+  if (!waiting_to_kick) {
+    if (can_kick_now()) {
+      charge_off();                 
+      can_kick_since = millis();  
+      waiting_to_kick = true;
+    }
+    return; 
+  }
+
+  unsigned long now = millis();
+  if (now - can_kick_since >= TIME_AFTER_CHARGE) {
+    if (do_kick(calc_power(kick_time))) {
+      kick_time = 0;
+      waiting_to_kick = false;
+      if (!charge_enabled) charge_on();                  
+   } 
   }
 }
