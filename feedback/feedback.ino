@@ -1,4 +1,4 @@
-///Esp q recebe os dados do robo - 2 fitas - com4 - 08:B6:1F:28:E3:94
+///Esp q recebe os dados do robo - 2 fitas - com9 - A4:CF:12:72:B7:20
 
 #define REFRESH_RATE 500
 #define FB_PASSWORD 1500
@@ -73,8 +73,7 @@ void updateLastMsgReceived(int id, int rssi, float battery){
 
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
   memcpy(&FeedbackData, incomingData, sizeof(FeedbackData));
-  if(FeedbackData.password != FB_PASSWORD) Serial.println("Wrong Password");
-  else{
+  if(FeedbackData.password == FB_PASSWORD){
     int new_id = FeedbackData.id;
     updateNumberOfConnections(new_id);
     updateLastMsgReceived(new_id, FeedbackData.rssi, FeedbackData.battery);

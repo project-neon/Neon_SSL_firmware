@@ -1,10 +1,10 @@
-#include <WiFi.h> //esp2 COM3
+#include <WiFi.h> //esp1 COM3 
 #include "config.h"
 #include "sensor.h"
 #include "communication.h"
 #include "skills.h"
-#include "speed_control.h"
 #include "kicker.h"
+#include "speed_control.h"
 
 // // --- benchmarking do loop ---
 // static uint32_t loop_start_us = 0;
@@ -50,7 +50,7 @@ void setup(){
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
     pinMode(2, OUTPUT);
-    pinMode(VOLTAGE_SENSOR_PIN, OUTPUT);
+    pinMode(VOLTAGE_SENSOR_PIN, INPUT);
     setup_kicker();
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");

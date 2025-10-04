@@ -1,6 +1,6 @@
-//station que envia os comandos para o robô - numero 1 - com9
+//station que envia os comandos para o robô - numero 1 - com4
 // Formato de entrada humana: <2,0.5,1.0,0.0,300>
-// Para o pacote enviado via ESP-NOW, vai SEM os marcadores: "2,0.5,1.0,0.0,300"
+// Para o pacote enviado via ESP-NOW, vai SEM os marcadores: "2,0.5,1.0,0.0,300" 08:B6:1F:28:E3:94
 
 #define ROBOT_PASSWORD 2400
 
@@ -8,7 +8,7 @@
 #include <WiFi.h>
 
 // ====== CONFIG AUTO TEST ======
-#define AUTO_MODE        0        
+#define AUTO_MODE        1        
 #define AUTO_PERIOD_MS   200      
 const char* DEFAULT_CMD = "2,0.5,1.0,0.0,300";
 // ==============================
