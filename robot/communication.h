@@ -16,22 +16,73 @@ typedef struct struct_feedback {
 struct_data DataReceived;
 struct_feedback DataFeedback;
 esp_now_peer_info_t peer;
+esp_now_send_status_t last_status = ESP_NOW_SEND_FAIL;
+esp_err_t err;
+bool paused = false;
+int fail_streak = 0;
+
+
+void OnDataSent(const uint8_t* mac, esp_now_send_status_t status) {
+    last_status = status;
+    if (status == ESP_NOW_SEND_SUCCESS) fail_streak = 0;
+    else if (fail_streak < 255)    fail_streak++;
+}
+
 
 void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
     memcpy(&DataReceived, incomingData, sizeof(DataReceived));
     if (DataReceived.password != ROBOT_PASSWORD) return;
     first_mark = millis();
     strcpy(commands, DataReceived.message);
-    new_data=1;
+    new_data=true;
   }
   
-void sendFeedback() {
+bool send_feedback() {
     DataFeedback.password = FB_PASSWORD;
-    DataFeedback.rssi = rssi;
-    DataFeedback.id = robot_id;
-    DataFeedback.battery = readBattery();
-    esp_now_send(mac_address_feedback, (uint8_t *) &DataFeedback, sizeof(DataFeedback));
+    DataFeedback.rssi     = rssi;
+    DataFeedback.id       = robot_id;
+    DataFeedback.battery  = readBattery();
+
+    esp_err_t e = esp_now_send(mac_address_feedback, (uint8_t*)&DataFeedback, sizeof(DataFeedback));
+    if (e != ESP_OK) {
+        if (fail_streak < 255) fail_streak++;
+        return false;
+    }
+    return true;
 }
+
+void handle_feedback(bool enabled) {
+    if (!enabled) { 
+      paused = false; 
+      fail_streak = 0; 
+      return;
+    }
+    const uint32_t now = millis();
+
+    if (!paused && fail_streak >= MAX_FAILS_BEFORE_PAUSE) {
+        paused        = true;
+        pause_until_ms = now + PAUSE_COOLDOWN_MS;
+    }
+
+    if (!paused) {
+        if (now - last_feedback_ms>= FEEDBACK_PERIOD_MS) {
+            if (send_feedback()) last_feedback_ms = now;
+        }
+        return;
+    }
+
+    if (now >= pause_until_ms) {
+        if (now - last_probe_ms >= PROBE_PERIOD_MS) {
+            if (send_feedback()) last_probe_ms = now;
+            if (last_status == ESP_NOW_SEND_SUCCESS) {
+                paused      = false;
+                fail_streak = 0;
+                last_feedback_ms = now;
+            }
+        }
+    }
+}
+
 
 void parseData(){
   char * strtokIndx;

@@ -2,7 +2,6 @@
 #include "config.h"
 #include "sensor.h"
 #include "communication.h"
-#include "skills.h"
 #include "kicker.h"
 #include "speed_control.h"
 
@@ -46,6 +45,7 @@
 // }
 
 
+
 void setup(){
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
@@ -65,14 +65,18 @@ void setup(){
         ESP.restart();
     }
     esp_now_register_recv_cb(OnDataRecv);
-    esp_wifi_set_promiscuous(useFeedback);
+    esp_now_register_send_cb(OnDataSent);
+    esp_wifi_set_promiscuous(computeRSSI);
     if (computeRSSI) esp_wifi_set_promiscuous_rx_cb(&promiscuous_rx_cb);
 }
 
 void loop(){
    // bench_loop_begin();
     strcpy(tempChars, commands);
-    if(new_data) parseData();
+    if(new_data){ 
+        parseData();
+        new_data = false;
+    }
     second_mark = millis();
     if (second_mark - first_mark > FAILSAFE_MS) failSafe();
     //if ((kick_time != 0) && (second_mark - kicker_mark > KICK_COOLDOWN_MS)) kicker_control();
@@ -81,6 +85,6 @@ void loop(){
     dt = (crt - last_time)/1000.0;
     last_time = crt;
     if (!stop) motors_control(v_l, v_a, th);
-    if((new_data) && (useFeedback)) sendFeedback();
+    if(new_data) handle_feedback(useFeedback);
    // bench_loop_end();
 }
