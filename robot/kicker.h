@@ -12,6 +12,9 @@ static bool charge_enabled = false;
 static unsigned long charge_on_since_ms = 0;
 //static unsigned long last_kick_ms = 0;
 static unsigned long can_kick_since = 0;
+static unsigned long kick_done_ms = 0;   
+
+static bool waiting_before_recharge = false;
 
 
 void charge_on() {
@@ -65,6 +68,15 @@ void setup_kicker() {
 
 
 void kicker_control(){
+  unsigned long now = millis();
+  if (waiting_before_recharge){
+    if (now - kick_done_ms >= TIME_BEFORE_CHARGE) {
+      if (!charge_enabled) charge_on();
+      waiting_before_recharge = false;
+    }
+    return;
+  }
+
   if (kick_time <= 0) {
     if (!charge_enabled) charge_on();
     waiting_to_kick = false;
@@ -79,13 +91,13 @@ void kicker_control(){
     }
     return; 
   }
-
-  unsigned long now = millis();
   if (now - can_kick_since >= TIME_AFTER_CHARGE) {
     if (do_kick(calc_power(kick_time))) {
       kick_time = 0;
       waiting_to_kick = false;
-      if (!charge_enabled) charge_on();                  
+      waiting_before_recharge = true;
+      kick_done_ms = now;
+      //if (!charge_enabled) charge_on();                  
    } 
   }
 }

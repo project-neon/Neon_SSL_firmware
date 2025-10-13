@@ -2,7 +2,7 @@
 #include "config.h"
 #include "sensor.h"
 #include "communication.h"
-#include "skills.h"
+//#include "skills.h"
 #include "kicker.h"
 #include "speed_control.h"
 
