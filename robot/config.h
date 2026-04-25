@@ -17,6 +17,12 @@ bool computeRSSI = true;
 #define ROBOT_PASSWORD 2400
 #define FB_PASSWORD 1500
 
+
+static const uint8_t  MAX_FAILS_BEFORE_PAUSE = 10;
+
+static const uint32_t PAUSE_COOLDOWN_MS    = 5000;
+static const uint32_t PROBE_PERIOD_MS      = 1500;
+
 static bool waiting_to_kick = false;
 
 uint8_t mac_address_feedback[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20};  //{0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94};A4:CF:12:72:B7:20
@@ -31,10 +37,14 @@ const byte numChars = 200;
 
 //const unsigned long KICK_COOLDOWN_MS = 2000;
 const unsigned long FAILSAFE_MS = 300;
+const uint32_t FEEDBACK_PERIOD_MS = 100;
 //const unsigned long TIME_AFTER_CHARGE = 10;
 
 float vel_step = 100;
 
+uint32_t last_feedback_ms = 0;
+uint32_t last_probe_ms = 0;
+uint32_t pause_until_ms = 0;
 
 //----------------------------------------//
 float v_l, v_a, th;
