@@ -1,119 +1,128 @@
-//station que envia os comandos para o robô - numero 1 - com4
-// Formato de entrada humana: <2,0.5,1.0,0.0,300>
-// Para o pacote enviado via ESP-NOW, vai SEM os marcadores: "2,0.5,1.0,0.0,300" 08:B6:1F:28:E3:94
-
-#define ROBOT_PASSWORD 2400
-
 #include <esp_now.h>
 #include <WiFi.h>
 
-// ====== CONFIG AUTO TEST ======
-#define AUTO_MODE        1        
-#define AUTO_PERIOD_MS   200      
-const char* DEFAULT_CMD = "2,0.5,1.0,0.0,300";
-// ==============================
+// --- Constants and configuration ---
+constexpr uint8_t BROADCAST_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+constexpr int LED_PIN = 2;
+constexpr size_t MESSAGE_LENGTH = 200;
+constexpr char MSG_START_MARKER = '<';
+constexpr char MSG_END_MARKER = '>';
+constexpr bool AUTO_MODE_ENABLED = false;
+constexpr int AUTO_MODE_SEND_INTERVAL_IN_MS = 200;
+constexpr int ROBOT_PASSWORD = 2400;
+const char DEFAULT_MESSAGE[] = "2,0.5,1.0,0.0,300";
 
-uint8_t broadcast_address[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // broadcast
+// --- Data Structures ---
+struct message_t
+{
+    int password;
+    char message[MESSAGE_LENGTH];
+};
 
-esp_now_peer_info_t peer;
+bool recv_with_message_markers(char *buffer, size_t buf_len);
+void send_message(const message_t &msg);
+void print_message(char *msg);
 
-const byte numChars = 200;
-char receivedChars[numChars];
-boolean newData = false;
+void setup()
+{
+    Serial.begin(115200);
+    WiFi.mode(WIFI_STA);
+    pinMode(LED_PIN, OUTPUT);
 
-typedef struct struct_message {
-  int password;
-  char message[numChars];
-} struct_message;
-
-struct_message commands;
-
-void recvWithStartEndMarkers();
-void sendData();
-
-void setup() {
-  Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-
-  pinMode(2, OUTPUT);
-
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing ESP-NOW");
-    ESP.restart();
-  } else {
-    Serial.println("ESPNOW OK");
-  }
-
-  memset(&peer, 0, sizeof(peer));
-  memcpy(peer.peer_addr, broadcast_address, 6);
-  peer.channel = 0;
-  peer.encrypt = false;
-
-  if (esp_now_add_peer(&peer) != ESP_OK) {
-    Serial.println("Failed to add peer");
-    ESP.restart();
-  }
-
-  Serial.print("AUTO_MODE: ");
-  Serial.println(AUTO_MODE ? "ON" : "OFF");
-}
-
-void loop() {
-  recvWithStartEndMarkers();
-  if (newData) {
-    strncpy(commands.message, receivedChars, numChars - 1);
-    commands.message[numChars - 1] = '\0';
-    commands.password = ROBOT_PASSWORD;
-    sendData();
-    newData = false;
-    return; 
-  }
-
-#if AUTO_MODE
-  static uint32_t last_auto = 0;
-  uint32_t now = millis();
-  if (now - last_auto >= AUTO_PERIOD_MS) {
-    strncpy(commands.message, DEFAULT_CMD, numChars - 1);
-    commands.message[numChars - 1] = '\0';
-    commands.password = ROBOT_PASSWORD;
-    sendData();
-    last_auto = now;
-  }
-#endif
-}
-
-void recvWithStartEndMarkers() {
-  static boolean recvInProgress = false;
-  static byte ndx = 0;
-  const char startMarker = '<';
-  const char endMarker   = '>';
-
-  while (Serial.available()) {
-    char in = Serial.read();
-    if (recvInProgress) {
-      if (in != endMarker) {
-        if (ndx < numChars - 1) {
-          receivedChars[ndx++] = in;
-        }
-      } else {
-        receivedChars[ndx] = '\0';
-        recvInProgress = false;
-        ndx = 0;
-        newData = true;
-      }
-    } else if (in == startMarker) {
-      recvInProgress = true;
-      ndx = 0;
+    if (esp_now_init() != ESP_OK)
+    {
+        Serial.println("Error initializing ESP-NOW");
+        ESP.restart();
     }
-  }
+    else
+    {
+        Serial.println("ESPNOW OK");
+    }
+
+    esp_now_peer_info_t peer{};
+    memcpy(peer.peer_addr, BROADCAST_ADDRESS, 6);
+    peer.channel = 0;
+    peer.encrypt = false;
+
+    if (esp_now_add_peer(&peer) != ESP_OK)
+    {
+        Serial.println("Failed to add peer");
+        ESP.restart();
+    }
 }
 
-void sendData() {
-  // Envia pacote via ESP-NOW
-  esp_err_t err = esp_now_send(broadcast_address, (uint8_t*)&commands, sizeof(commands));
-  // pulso no LED para indicar envio
-  digitalWrite(2, HIGH);
-  delay(3);
-  digitalWrite(2, LOW);
+void loop()
+{
+    static message_t message{};
+    static uint32_t last_msg_timestamp_in_ms = 0;
+    static char message_buffer[MESSAGE_LENGTH];
 
+    if (AUTO_MODE_ENABLED)
+    {
+        uint32_t now = millis();
+        if (now - last_msg_timestamp_in_ms >= AUTO_MODE_SEND_INTERVAL_IN_MS)
+        {
+            strncpy(message.message, DEFAULT_MESSAGE, MESSAGE_LENGTH - 1);
+            message.message[MESSAGE_LENGTH - 1] = '\0';
+            message.password = ROBOT_PASSWORD;
+            send_message(message);
+            last_msg_timestamp_in_ms = now;
+        }
+        return;
+    }
+
+    if (recv_with_message_markers(message_buffer, MESSAGE_LENGTH))
+    {
+        strncpy(message.message, message_buffer, MESSAGE_LENGTH - 1);
+        message.message[MESSAGE_LENGTH - 1] = '\0';
+        message.password = ROBOT_PASSWORD;
+        send_message(message);
+    }
+}
+
+// Encapsulate Serial receiving logic
+bool recv_with_message_markers(char *buffer, size_t buf_len)
+{
+    static bool recv_in_progress = false;
+    static size_t ndx = 0;
+    bool new_message_received = false;
+
+    while (Serial.available() > 0 && !new_message_received)
+    {
+        char c = Serial.read();
+        if (recv_in_progress)
+        {
+            if (c != MSG_END_MARKER)
+            {
+                if (ndx < buf_len - 1)
+                {
+                    buffer[ndx++] = c;
+                }
+            }
+            else
+            {
+                buffer[ndx] = '\0';
+                recv_in_progress = false;
+                ndx = 0;
+                new_message_received = true;
+            }
+        }
+        else if (c == MSG_START_MARKER)
+        {
+            recv_in_progress = true;
+            ndx = 0;
+        }
+    }
+
+    return new_message_received;
+}
+
+void send_message(const message_t &msg)
+{
+    esp_err_t err = esp_now_send(BROADCAST_ADDRESS, (uint8_t *)&msg, sizeof(msg));
+
+    // Pulse the LED to indicate sending
+    digitalWrite(LED_PIN, HIGH);
+    delay(3);
+    digitalWrite(LED_PIN, LOW);
 }
