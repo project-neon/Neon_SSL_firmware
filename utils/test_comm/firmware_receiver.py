@@ -79,7 +79,7 @@ class RobotFeedback(threading.Thread):
             dict_list.append(robot_dict)
         return dict_list
 
-feedback = RobotFeedback('COM7')
+feedback = RobotFeedback('COM8')
 feedback.start()
 
 try:

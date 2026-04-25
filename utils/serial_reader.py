@@ -1,4 +1,7 @@
 #!pip install pyserial
+# run as python serial_reader.py --port <PORT>
+# This script reads data from a serial port, processes it to extract information 
+# (e.g., ID, RSSI, battery), and prints the results or error messages in real-time.
 
 import serial
 import argparse
