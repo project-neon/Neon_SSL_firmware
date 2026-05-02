@@ -13,28 +13,23 @@ public:
     bool compute_rssi;
     uint8_t mac_feedback[6];
     uint8_t mac_station[6];
-    float L;
-    float r;
+    float wheelbase;
+    float wheel_radius;
     float vel_step;
 
-    char commands[MESSAGE_LENGTH_BYTES] = {};
-    char temp_chars[MESSAGE_LENGTH_BYTES] = {};
-    char last_message[MESSAGE_LENGTH_BYTES] = {};
+    char command_buffer[MESSAGE_LENGTH_BYTES] = {};
+    char scratch_buffer[MESSAGE_LENGTH_BYTES] = {};
 
-    int id = 0;
+    int parsed_id = 0;
     bool new_data = false;
     bool stop = false;
-    float v_l = 0.0f;
-    float v_a = 0.0f;
-    float th = 0.0f;
+    float v_linear = 0.0f;
+    float v_angular = 0.0f;
+    float throttle = 0.0f;
     int kick_time = 0;
     bool waiting_to_kick = false;
 
-    int first_mark = 0;
-    int second_mark = 0;
-    int kicker_mark = 0;
-    int charge_kicker = 0;
-    int crt = 0;
+    int last_command_ms = 0;
     float dt = 0.0f;
     int last_time = 0;
 
@@ -70,14 +65,14 @@ public:
                  bool rssi_en,
                  const uint8_t mac_fb[6],
                  const uint8_t mac_st[6],
-                 float wheelbase,
-                 float radius,
+                 float wbase,
+                 float wradius,
                  float step)
         : robot_id(id)
         , use_feedback(fb)
         , compute_rssi(rssi_en)
-        , L(wheelbase)
-        , r(radius)
+        , wheelbase(wbase)
+        , wheel_radius(wradius)
         , vel_step(step)
     {
         memcpy(mac_feedback, mac_fb, 6);
