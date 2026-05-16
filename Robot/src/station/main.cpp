@@ -1,27 +1,19 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <Arduino.h>
+#include <types.h>
 
 // --- Constants and configuration ---
 constexpr uint8_t BROADCAST_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 constexpr int LED_PIN = 2;
-constexpr size_t MESSAGE_LENGTH = 200;
 constexpr char MSG_START_MARKER = '<';
 constexpr char MSG_END_MARKER = '>';
 constexpr bool AUTO_MODE_ENABLED = false;
 constexpr int AUTO_MODE_SEND_INTERVAL_IN_MS = 200;
-constexpr int ROBOT_PASSWORD = 2400;
 const char DEFAULT_MESSAGE[] = "2,0.5,1.0,0.0,300";
 
-// --- Data Structures ---
-struct message_t
-{
-    int password;
-    char message[MESSAGE_LENGTH];
-};
-
 bool recv_with_message_markers(char *buffer, size_t buf_len);
-void send_message(const message_t &msg);
+void send_command(const robot_command &msg);
 void print_message(char *msg);
 
 void setup()
@@ -54,30 +46,30 @@ void setup()
 
 void loop()
 {
-    static message_t message{};
+    static robot_command command{};
     static uint32_t last_msg_timestamp_in_ms = 0;
-    static char message_buffer[MESSAGE_LENGTH];
+    static char message_buffer[MESSAGE_LENGTH_BYTES];
 
     if (AUTO_MODE_ENABLED)
     {
         uint32_t now = millis();
         if (now - last_msg_timestamp_in_ms >= AUTO_MODE_SEND_INTERVAL_IN_MS)
         {
-            strncpy(message.message, DEFAULT_MESSAGE, MESSAGE_LENGTH - 1);
-            message.message[MESSAGE_LENGTH - 1] = '\0';
-            message.password = ROBOT_PASSWORD;
-            send_message(message);
+            strncpy(command.message, DEFAULT_MESSAGE, MESSAGE_LENGTH_BYTES - 1);
+            command.message[MESSAGE_LENGTH_BYTES - 1] = '\0';
+            command.password = ROBOT_PASSWORD;
+            send_command(command);
             last_msg_timestamp_in_ms = now;
         }
         return;
     }
 
-    if (recv_with_message_markers(message_buffer, MESSAGE_LENGTH))
+    if (recv_with_message_markers(message_buffer, MESSAGE_LENGTH_BYTES))
     {
-        strncpy(message.message, message_buffer, MESSAGE_LENGTH - 1);
-        message.message[MESSAGE_LENGTH - 1] = '\0';
-        message.password = ROBOT_PASSWORD;
-        send_message(message);
+        strncpy(command.message, message_buffer, MESSAGE_LENGTH_BYTES - 1);
+        command.message[MESSAGE_LENGTH_BYTES - 1] = '\0';
+        command.password = ROBOT_PASSWORD;
+        send_command(command);
     }
 }
 
@@ -118,7 +110,7 @@ bool recv_with_message_markers(char *buffer, size_t buf_len)
     return new_message_received;
 }
 
-void send_message(const message_t &msg)
+void send_command(const robot_command &msg)
 {
     esp_err_t err = esp_now_send(BROADCAST_ADDRESS, (uint8_t *)&msg, sizeof(msg));
 

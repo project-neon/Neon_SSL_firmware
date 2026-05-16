@@ -2,16 +2,15 @@
 #include "kicker.h"
 #include "robot_context.h"
 
-void setup_kicker()
+void setup_kicker_pins()
 {
     pinMode(KICKER_PIN, OUTPUT);
     pinMode(CHARGE_KICKER_PIN, OUTPUT);
     digitalWrite(KICKER_PIN, LOW);
     digitalWrite(CHARGE_KICKER_PIN, LOW);
-    charge_on();
 }
 
-void charge_on()
+void kicker_charge_on()
 {
     if (!robot->charge_enabled)
     {
@@ -21,7 +20,7 @@ void charge_on()
     }
 }
 
-void charge_off()
+void kicker_charge_off()
 {
     if (robot->charge_enabled)
     {
@@ -63,7 +62,7 @@ void kicker_control()
         {
             if (!robot->charge_enabled)
             {
-                charge_on();
+                kicker_charge_on();
             }
             robot->waiting_before_recharge = false;
         }
@@ -74,7 +73,7 @@ void kicker_control()
     {
         if (!robot->charge_enabled)
         {
-            charge_on();
+            kicker_charge_on();
         }
         robot->waiting_to_kick = false;
         return;
@@ -84,7 +83,7 @@ void kicker_control()
     {
         if (can_kick_now())
         {
-            charge_off();
+            kicker_charge_off();
             robot->can_kick_since = now;
             robot->waiting_to_kick = true;
         }

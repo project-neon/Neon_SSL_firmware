@@ -7,7 +7,7 @@ typedef struct
 {
     int password;
     char message[MESSAGE_LENGTH_BYTES];
-} struct_data;
+} robot_command;
 
 typedef struct
 {
@@ -15,7 +15,7 @@ typedef struct
     int id;
     int rssi;
     float battery;
-} struct_feedback;
+} feedback_message;
 
 typedef struct
 {

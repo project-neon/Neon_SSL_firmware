@@ -39,8 +39,8 @@ public:
     bool paused = false;
     int fail_streak = 0;
 
-    struct_data          data_received = {};
-    struct_feedback      data_feedback = {};
+    robot_command data_received = {};
+    feedback_message data_feedback = {};
     esp_now_peer_info_t  peer = {};
     esp_now_send_status_t last_send_status = ESP_NOW_SEND_FAIL;
 

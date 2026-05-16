@@ -9,17 +9,19 @@ RobotContext* robot = nullptr;
 
 void setup()
 {
-    const uint8_t mac_st[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20};
-    const uint8_t mac_fb[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94};
-    robot = new RobotContext(2, true, true, mac_fb, mac_st, 0.0785f, 0.03f, 100.0f);
-
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
 
     pinMode(2, OUTPUT);
     pinMode(VOLTAGE_SENSOR_PIN, INPUT);
 
-    setup_kicker();
+    const uint8_t station_mac_address[6] = {0xA4, 0xCF, 0x12, 0x72, 0xB7, 0x20};
+    const uint8_t feedback_mac_address[6] = {0x08, 0xB6, 0x1F, 0x28, 0xE3, 0x94};
+
+    robot = new RobotContext(2, true, true, feedback_mac_address, station_mac_address, 0.0785f, 0.03f, 100.0f);
+
+    setup_kicker_pins();
+    kicker_charge_on();
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");

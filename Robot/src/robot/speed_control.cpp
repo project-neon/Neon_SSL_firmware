@@ -82,5 +82,5 @@ void fail_safe()
 
     robot->kick_time      = 0;
     robot->waiting_to_kick = false;
-    charge_off();
+    kicker_charge_off();
 }

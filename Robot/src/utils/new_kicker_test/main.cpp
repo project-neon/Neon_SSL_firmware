@@ -18,21 +18,25 @@ static bool charge_enabled = false;
 static unsigned long charge_on_since_ms = 0;
 static unsigned long last_kick_ms = 0;
 
-void charge_on() {
-  if (!charge_enabled) {
-    digitalWrite(CHARGE_PIN, HIGH);
-    charge_enabled = true;
-    charge_on_since_ms = millis();
-    Serial.println(F("CHARGE ON"));
-  }
+void kicker_charge_on()
+{
+    if (!charge_enabled)
+    {
+        digitalWrite(CHARGE_PIN, HIGH);
+        charge_enabled = true;
+        charge_on_since_ms = millis();
+        Serial.println(F("CHARGE ON"));
+    }
 }
 
-void charge_off() {
-  if (charge_enabled) {
-    digitalWrite(CHARGE_PIN, LOW);
-    charge_enabled = false;
-    Serial.println(F("CHARGE OFF"));
-  }
+void kicker_charge_off()
+{
+    if (charge_enabled)
+    {
+        digitalWrite(CHARGE_PIN, LOW);
+        charge_enabled = false;
+        Serial.println(F("CHARGE OFF"));
+    }
 }
 
 bool can_kick_now() {
@@ -60,7 +64,7 @@ bool can_kick_now() {
 bool do_kick(uint32_t pulse_us) {
   if (!can_kick_now()) return false;
 
-  charge_off();
+  kicker_charge_off();
   delay(TIME_AFTER_CHARGE);
   Serial.print(F("[KICK] Pulso de "));
   Serial.print(pulse_us);
@@ -72,7 +76,7 @@ bool do_kick(uint32_t pulse_us) {
 
   last_kick_ms = millis();
 
-  charge_on();
+  kicker_charge_on();
 
   return true;
 }
@@ -83,7 +87,7 @@ void setup() {
   pinMode(CHARGE_PIN, OUTPUT);
   digitalWrite(KICK_PIN, LOW);
   digitalWrite(CHARGE_PIN, LOW);
-  charge_on();
+  kicker_charge_on();
 
   last_kick_ms = millis() - KICK_COOLDOWN_MS;
 }
@@ -94,9 +98,9 @@ void loop() {
     cmd.trim();
 
     if (cmd.equalsIgnoreCase("C1")) {
-      charge_on();
+        kicker_charge_on();
     } else if (cmd.equalsIgnoreCase("C0")) {
-      charge_off();
+        kicker_charge_off();
     } else if (cmd.startsWith("K")) {
       int sp = cmd.indexOf(' ');
       if (sp > 0) {

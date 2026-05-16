@@ -4,11 +4,12 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-typedef struct struct_data {
-  int data_received;
-} struct_data;
+typedef struct robot_command
+{
+    int data_received;
+} robot_command;
 
-struct_data DataReceived;
+robot_command DataReceived;
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));

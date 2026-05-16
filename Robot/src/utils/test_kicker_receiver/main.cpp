@@ -19,27 +19,32 @@ static unsigned long last_kick_ms = 0;
 esp_now_peer_info_t peer;
 
 //struct received
-typedef struct struct_data {
-  int time_us;
-} struct_data;
+typedef struct robot_command
+{
+    int time_us;
+} robot_command;
 
-struct_data DataReceived;
+robot_command DataReceived;
 
-void charge_on() {
-  if (!charge_enabled) {
-    digitalWrite(CHARGE_PIN, HIGH);
-    charge_enabled = true;
-    charge_on_since_ms = millis();
-    Serial.println(F("CHARGE ON"));
-  }
+void kicker_charge_on()
+{
+    if (!charge_enabled)
+    {
+        digitalWrite(CHARGE_PIN, HIGH);
+        charge_enabled = true;
+        charge_on_since_ms = millis();
+        Serial.println(F("CHARGE ON"));
+    }
 }
 
-void charge_off() {
-  if (charge_enabled) {
-    digitalWrite(CHARGE_PIN, LOW);
-    charge_enabled = false;
-    Serial.println(F("CHARGE OFF"));
-  }
+void kicker_charge_off()
+{
+    if (charge_enabled)
+    {
+        digitalWrite(CHARGE_PIN, LOW);
+        charge_enabled = false;
+        Serial.println(F("CHARGE OFF"));
+    }
 }
 
 bool can_kick_now() {
@@ -71,7 +76,7 @@ uint32_t calc_power(int pot){
 bool do_kick(uint32_t pulse_us) {
   if (!can_kick_now()) return false;
 
-  charge_off();
+  kicker_charge_off();
   delay(TIME_AFTER_CHARGE);
   Serial.print(F("[KICK] Pulso de "));
   Serial.print(pulse_us);
@@ -82,7 +87,7 @@ bool do_kick(uint32_t pulse_us) {
 
   last_kick_ms = millis();
 
-  charge_on();
+  kicker_charge_on();
 
   return true;
 }
@@ -104,7 +109,7 @@ void setup() {
   pinMode(CHARGE_PIN, OUTPUT);
   digitalWrite(KICK_PIN, LOW);
   digitalWrite(CHARGE_PIN, LOW);
-  charge_on();
+  kicker_charge_on();
 
   last_kick_ms = millis() - KICK_COOLDOWN_MS;
 

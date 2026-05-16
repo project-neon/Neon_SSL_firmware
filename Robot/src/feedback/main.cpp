@@ -7,18 +7,11 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <Arduino.h>
+#include <types.h>
 
 unsigned long first_mark = 0;
 
 unsigned long second_mark = 0;
-
-typedef struct struct_message
-{
-    int password;
-    int id;
-    int rssi;
-    float battery;
-} fb_message;
 
 int n_robots = 0;
 
@@ -34,7 +27,7 @@ String last_id3_msg = "<-1,-1,-1.0>";
 String last_id4_msg = "<-1,-1,-1.0>";
 String last_id5_msg = "<-1,-1,-1.0>";
 
-fb_message FeedbackData;
+feedback_message FeedbackData;
 
 void updateIdsConnected(int id);
 void updateNumberOfConnections();
