@@ -61,11 +61,11 @@ class RobotContext {
   int parsed_id_ = 0;
   bool new_data_ = false;
 
-  // ── Motion commands ────────────────────────────────
+  // ── Velocity ────────────────────────────────
   bool stop_ = false;
-  float v_linear_ = 0.0f;
-  float v_angular_ = 0.0f;
-  float throttle_ = 0.0f;
+  float vx_ = 0.0f;
+  float vy_ = 0.0f;
+  float vtheta_ = 0.0f;
 
   // ── Kicker ─────────────────────────────────────────
   int kick_time_ = 0;

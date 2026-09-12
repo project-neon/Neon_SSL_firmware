@@ -69,11 +69,11 @@ void RobotContext::parse_command_internal() {
       stop_ = false;
 
       tok = strtok(NULL, ",");
-      v_linear_ = atof(tok);
+      vx_ = atof(tok);
       tok = strtok(NULL, ",");
-      v_angular_ = atof(tok);
+      vy_ = atof(tok);
       tok = strtok(NULL, ",");
-      throttle_ = atof(tok);
+      vtheta_ = atof(tok);
       tok = strtok(NULL, ",");
       if (!waiting_to_kick_) {
         kick_time_ = atof(tok);
@@ -94,9 +94,9 @@ void RobotContext::parse_command_internal() {
 // ══════════════════════════════════════════════════════════════════
 
 void RobotContext::fail_safe_check() {
-  v_linear_ = 0.0f;
-  v_angular_ = 0.0f;
-  throttle_ = 0.0f;
+  vx_ = 0.0f;
+  vy_ = 0.0f;
+  vtheta_ = 0.0f;
   last_error_ = 0;
   error_sum_ = 0.0f;
   stop_ = true;
@@ -236,10 +236,10 @@ void RobotContext::send_powers(float rd, float rt, float ld, float lt) {
 void RobotContext::motors_update() {
   if (stop_) return;
 
-  float rd = motor_velocity(1, v_linear_, v_angular_, throttle_);
-  float rt = motor_velocity(2, v_linear_, v_angular_, throttle_);
-  float ld = motor_velocity(3, v_linear_, v_angular_, throttle_);
-  float lt = motor_velocity(4, v_linear_, v_angular_, throttle_);
+  float rd = motor_velocity(1, vx_, vy_, vtheta_);
+  float rt = motor_velocity(2, vx_, vy_, vtheta_);
+  float ld = motor_velocity(3, vx_, vy_, vtheta_);
+  float lt = motor_velocity(4, vx_, vy_, vtheta_);
 
   rd = ramp(rd, prev_rd_, dt_);
   rt = ramp(rt, prev_rt_, dt_);
