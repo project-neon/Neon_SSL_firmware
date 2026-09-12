@@ -1,16 +1,20 @@
 #include <Arduino.h>
-#include <esp_now.h>
 #include <WiFi.h>
+#include <esp_now.h>
+
 #include "esp_wifi.h"
 
-#define KICK_PIN    33
-#define CHARGE_PIN  18
+#define KICK_PIN 33
+#define CHARGE_PIN 18
 
 // regras de segurança
-const unsigned long KICK_COOLDOWN_MS   = 2000; // entre chutes
-const unsigned long TIME_AFTER_CHARGE  = 500;   // ms após desligar carga antes do chute
-const unsigned long TIME_BEFORE_CHARGE = 10; // ms após desligar carga antes do chute
-const unsigned long MIN_CHARGE_TIME_MS = 2000; // ms de carga antes de poder chutar
+const unsigned long KICK_COOLDOWN_MS = 2000;  // entre chutes
+const unsigned long TIME_AFTER_CHARGE =
+    500;  // ms após desligar carga antes do chute
+const unsigned long TIME_BEFORE_CHARGE =
+    10;  // ms após desligar carga antes do chute
+const unsigned long MIN_CHARGE_TIME_MS =
+    2000;  // ms de carga antes de poder chutar
 
 static bool charge_enabled = false;
 static unsigned long charge_on_since_ms = 0;
@@ -18,33 +22,28 @@ static unsigned long last_kick_ms = 0;
 
 esp_now_peer_info_t peer;
 
-//struct received
-typedef struct robot_command
-{
-    int time_us;
+// struct received
+typedef struct robot_command {
+  int time_us;
 } robot_command;
 
 robot_command DataReceived;
 
-void kicker_charge_on()
-{
-    if (!charge_enabled)
-    {
-        digitalWrite(CHARGE_PIN, HIGH);
-        charge_enabled = true;
-        charge_on_since_ms = millis();
-        Serial.println(F("CHARGE ON"));
-    }
+void kicker_charge_on() {
+  if (!charge_enabled) {
+    digitalWrite(CHARGE_PIN, HIGH);
+    charge_enabled = true;
+    charge_on_since_ms = millis();
+    Serial.println(F("CHARGE ON"));
+  }
 }
 
-void kicker_charge_off()
-{
-    if (charge_enabled)
-    {
-        digitalWrite(CHARGE_PIN, LOW);
-        charge_enabled = false;
-        Serial.println(F("CHARGE OFF"));
-    }
+void kicker_charge_off() {
+  if (charge_enabled) {
+    digitalWrite(CHARGE_PIN, LOW);
+    charge_enabled = false;
+    Serial.println(F("CHARGE OFF"));
+  }
 }
 
 bool can_kick_now() {
@@ -69,8 +68,8 @@ bool can_kick_now() {
   return true;
 }
 
-uint32_t calc_power(int pot){
-  return (uint32_t) max(0, min(20000, (int) map(pot, 0, 9, 0, 20000)));
+uint32_t calc_power(int pot) {
+  return (uint32_t)max(0, min(20000, (int)map(pot, 0, 9, 0, 20000)));
 }
 
 bool do_kick(uint32_t pulse_us) {
@@ -92,10 +91,11 @@ bool do_kick(uint32_t pulse_us) {
   return true;
 }
 
-void OnDataRecv(const esp_now_recv_info * mac, const uint8_t *incomingData, int len) {
-  digitalWrite(2,HIGH);
+void OnDataRecv(const esp_now_recv_info *mac, const uint8_t *incomingData,
+                int len) {
+  digitalWrite(2, HIGH);
   delay(3);
-  digitalWrite(2,LOW);
+  digitalWrite(2, LOW);
 
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
 
@@ -127,7 +127,7 @@ void setup() {
 
 void loop() {
   int time = DataReceived.time_us;
-  if(time > 0) {
+  if (time > 0) {
     do_kick(calc_power(time));
   }
   DataReceived.time_us = 0;

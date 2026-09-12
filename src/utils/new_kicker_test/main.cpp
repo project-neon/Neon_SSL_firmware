@@ -1,42 +1,41 @@
 #include <Arduino.h>
 
-//Comandos:
-//  C1           -> ligar carregamento
-//  C0           -> desligar carregamento
-//  K <micros>   -> chutar (exemplo: "K 800")
+// Comandos:
+//   C1           -> ligar carregamento
+//   C0           -> desligar carregamento
+//   K <micros>   -> chutar (exemplo: "K 800")
 
-#define KICK_PIN    33
-#define CHARGE_PIN  18
+#define KICK_PIN 33
+#define CHARGE_PIN 18
 
 // regras de segurança
-const unsigned long KICK_COOLDOWN_MS   = 2000; // entre chutes
-const unsigned long TIME_AFTER_CHARGE  = 500;   // ms após desligar carga antes do chute
-const unsigned long TIME_BEFORE_CHARGE = 10; // ms após desligar carga antes do chute
-const unsigned long MIN_CHARGE_TIME_MS = 2000; // ms de carga antes de poder chutar
+const unsigned long KICK_COOLDOWN_MS = 2000;  // entre chutes
+const unsigned long TIME_AFTER_CHARGE =
+    500;  // ms após desligar carga antes do chute
+const unsigned long TIME_BEFORE_CHARGE =
+    10;  // ms após desligar carga antes do chute
+const unsigned long MIN_CHARGE_TIME_MS =
+    2000;  // ms de carga antes de poder chutar
 
 static bool charge_enabled = false;
 static unsigned long charge_on_since_ms = 0;
 static unsigned long last_kick_ms = 0;
 
-void kicker_charge_on()
-{
-    if (!charge_enabled)
-    {
-        digitalWrite(CHARGE_PIN, HIGH);
-        charge_enabled = true;
-        charge_on_since_ms = millis();
-        Serial.println(F("CHARGE ON"));
-    }
+void kicker_charge_on() {
+  if (!charge_enabled) {
+    digitalWrite(CHARGE_PIN, HIGH);
+    charge_enabled = true;
+    charge_on_since_ms = millis();
+    Serial.println(F("CHARGE ON"));
+  }
 }
 
-void kicker_charge_off()
-{
-    if (charge_enabled)
-    {
-        digitalWrite(CHARGE_PIN, LOW);
-        charge_enabled = false;
-        Serial.println(F("CHARGE OFF"));
-    }
+void kicker_charge_off() {
+  if (charge_enabled) {
+    digitalWrite(CHARGE_PIN, LOW);
+    charge_enabled = false;
+    Serial.println(F("CHARGE OFF"));
+  }
 }
 
 bool can_kick_now() {
@@ -98,16 +97,17 @@ void loop() {
     cmd.trim();
 
     if (cmd.equalsIgnoreCase("C1")) {
-        kicker_charge_on();
+      kicker_charge_on();
     } else if (cmd.equalsIgnoreCase("C0")) {
-        kicker_charge_off();
+      kicker_charge_off();
     } else if (cmd.startsWith("K")) {
       int sp = cmd.indexOf(' ');
       if (sp > 0) {
         long pulse_us = cmd.substring(sp + 1).toInt();
         if (pulse_us > 0) {
           if (!do_kick((uint32_t)pulse_us)) {
-            Serial.println(F("KICK Abortado pelas regras (carga/tempo/cooldown)"));
+            Serial.println(
+                F("KICK Abortado pelas regras (carga/tempo/cooldown)"));
           }
         } else {
           Serial.println(F("Use: K <micros> com valor > 0"));

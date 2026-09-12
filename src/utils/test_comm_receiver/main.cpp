@@ -1,17 +1,16 @@
 #include <Arduino.h>
-///ESP do ROBO - 3 fita
+/// ESP do ROBO - 3 fita
 
-#include <esp_now.h>
 #include <WiFi.h>
+#include <esp_now.h>
 
-typedef struct robot_command
-{
-    int data_received;
+typedef struct robot_command {
+  int data_received;
 } robot_command;
 
 robot_command DataReceived;
 
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
   memcpy(&DataReceived, incomingData, sizeof(DataReceived));
   Serial.print("Message received: ");
   Serial.println(DataReceived.data_received);
@@ -28,6 +27,4 @@ void setup() {
   esp_now_register_recv_cb(OnDataRecv);
 }
 
-void loop() {
-
-}
+void loop() {}
