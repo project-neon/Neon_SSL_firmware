@@ -3,10 +3,6 @@
 #include "robot_context.h"
 #include "sensor.h"
 
-// ══════════════════════════════════════════════════════════════════
-// Constructor
-// ══════════════════════════════════════════════════════════════════
-
 RobotContext::RobotContext(int id, bool fb, bool rssi_en,
                            const uint8_t mac_fb[6], const uint8_t mac_st[6],
                            float wbase, float wradius, float step)
@@ -20,10 +16,6 @@ RobotContext::RobotContext(int id, bool fb, bool rssi_en,
     memcpy(mac_feedback_, mac_fb, 6);
     memcpy(mac_station_, mac_st, 6);
 }
-
-// ══════════════════════════════════════════════════════════════════
-// Setup helpers
-// ══════════════════════════════════════════════════════════════════
 
 void RobotContext::setup_kicker_pins()
 {
@@ -39,10 +31,6 @@ void RobotContext::setup_peer(uint8_t channel)
     peer_.encrypt = false;
     memcpy(peer_.peer_addr, mac_feedback_, 6);
 }
-
-// ══════════════════════════════════════════════════════════════════
-// ESP-NOW callback handlers
-// ══════════════════════════════════════════════════════════════════
 
 void RobotContext::handle_received_packet(const uint8_t* data, int len)
 {
@@ -64,10 +52,6 @@ void RobotContext::handle_send_status(esp_now_send_status_t status)
         fail_streak_++;
     }
 }
-
-// ══════════════════════════════════════════════════════════════════
-// Command processing
-// ══════════════════════════════════════════════════════════════════
 
 void RobotContext::process_command()
 {
