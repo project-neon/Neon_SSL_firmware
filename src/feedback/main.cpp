@@ -48,11 +48,6 @@ void setup() {
 }
 
 void loop() {
-  if (!Serial) {
-    Serial.begin(115200);
-    delay(100);
-    ESP.restart();
-  }
   checkTimeouts();
 
   if (n_robots != 0) {

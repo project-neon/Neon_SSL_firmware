@@ -14,7 +14,6 @@ const char DEFAULT_MESSAGE[] = "2,0.5,1.0,0.0,300";
 
 bool recv_with_message_markers(char *buffer, size_t buf_len);
 void send_command(const robot_command &msg);
-void print_message(char *msg);
 
 void setup() {
   Serial.begin(115200);
